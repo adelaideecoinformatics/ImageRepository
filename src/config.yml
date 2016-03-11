@@ -1,0 +1,30 @@
+!Main_Image_Repo_Configuration
+alarm_threshold: 0.8
+create_new: false
+database_persistence: !Wall-E_configuration
+    gpg_key_id: null
+    pool_size: 8
+    use_image_repo: true
+db_versions_to_keep: 3
+local_cache_configuration: !Cache_Configuration
+    alarm_free_threshold: 0.1
+    evict_free_threshold: 0.2
+    evict_hysterysis: 0.2
+    priority: newest
+    size: 50
+    writeback: eager
+local_file_cache_path: /var/tmp/image_repo
+max_images: 0
+max_size: 0
+owner: null
+persisent_store: !Swift_Storage_Configuration
+    container: ''
+    credentials: null
+    server: ''
+swift_cache_configuration: !Cache_Configuration
+    alarm_free_threshold: 0.1
+    evict_free_threshold: 0.2
+    evict_hysterysis: 0.2
+    priority: newest
+    size: 50
+    writeback: eager

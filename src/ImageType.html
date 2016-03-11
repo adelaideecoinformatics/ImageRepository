@@ -1,0 +1,561 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module ImageType</title>
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>ImageType</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/Users/francis/Work/image_repository/src/ImageType.py">/Users/francis/Work/image_repository/src/ImageType.py</a></font></td></tr></table>
+    <p><tt>Encapsulates&nbsp;a&nbsp;suite&nbsp;of&nbsp;images<br>
+&nbsp;<br>
+Provides&nbsp;for&nbsp;lazy/caches&nbsp;generation&nbsp;of&nbsp;images&nbsp;of&nbsp;different&nbsp;forms</tt></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#aa55cc">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="Stores.html">Stores</a><br>
+<a href="cStringIO.html">cStringIO</a><br>
+</td><td width="25%" valign=top><a href="hashlib.html">hashlib</a><br>
+<a href="logging.html">logging</a><br>
+</td><td width="25%" valign=top><a href="os.html">os</a><br>
+<a href="uuid.html">uuid</a><br>
+</td><td width="25%" valign=top><a href="wand.html">wand</a><br>
+</td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="ImageType.html#ImageMetaData">ImageMetaData</a>
+</font></dt><dt><font face="helvetica, arial"><a href="ImageType.html#ImageMetadata">ImageMetadata</a>
+</font></dt><dt><font face="helvetica, arial"><a href="ImageType.html#ImageSet">ImageSet</a>
+</font></dt><dt><font face="helvetica, arial"><a href="__builtin__.html#object">__builtin__.object</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="ImageType.html#GeneralImage">GeneralImage</a>
+</font></dt><dt><font face="helvetica, arial"><a href="ImageType.html#ImageHandle">ImageHandle</a>
+</font></dt><dt><font face="helvetica, arial"><a href="ImageType.html#ImageInstance">ImageInstance</a>
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="ImageType.html#BaseImageInstance">BaseImageInstance</a>
+</font></dt><dt><font face="helvetica, arial"><a href="ImageType.html#OriginalImage">OriginalImage</a>
+</font></dt></dl>
+</dd>
+</dl>
+</dd>
+</dl>
+ <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="BaseImageInstance">class <strong>BaseImageInstance</strong></a>(<a href="ImageType.html#ImageInstance">ImageInstance</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>The&nbsp;image&nbsp;instance&nbsp;that&nbsp;forms&nbsp;the&nbsp;basis&nbsp;for&nbsp;all&nbsp;the&nbsp;derived&nbsp;images<br>
+This&nbsp;image&nbsp;is&nbsp;dervied&nbsp;from&nbsp;the&nbsp;<a href="#OriginalImage">OriginalImage</a>.<br>
+Normally&nbsp;it&nbsp;will&nbsp;be&nbsp;a&nbsp;lossless&nbsp;copy&nbsp;of&nbsp;the&nbsp;original&nbsp;image,&nbsp;but&nbsp;without&nbsp;any&nbsp;of&nbsp;the&nbsp;ebedded&nbsp;metadata&nbsp;that&nbsp;may&nbsp;have<br>
+come&nbsp;with&nbsp;the&nbsp;original&nbsp;image.<br>
+By&nbsp;default&nbsp;it&nbsp;will&nbsp;be&nbsp;stored&nbsp;as&nbsp;an&nbsp;ImageMagic&nbsp;miff&nbsp;format&nbsp;file<br>
+&nbsp;<br>
+&nbsp;<br>
+This&nbsp;class&nbsp;may&nbsp;be&nbsp;deprecated&nbsp;-&nbsp;it&nbsp;isn't&nbsp;clear&nbsp;it&nbsp;is&nbsp;as&nbsp;useful&nbsp;a&nbsp;concept&nbsp;as&nbsp;it&nbsp;first&nbsp;appeared.<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="ImageType.html#BaseImageInstance">BaseImageInstance</a></dd>
+<dd><a href="ImageType.html#ImageInstance">ImageInstance</a></dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="BaseImageInstance-__init__"><strong>__init__</strong></a>(self, image_name, image_handle)</dt></dl>
+
+<dl><dt><a name="BaseImageInstance-__str__"><strong>__str__</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="BaseImageInstance-get_base_name"><strong>get_base_name</strong></a>(self)</dt><dd><tt>Return&nbsp;the&nbsp;base&nbsp;name&nbsp;component&nbsp;for&nbsp;this&nbsp;image.<br>
+&nbsp;<br>
+:return:&nbsp;string:&nbsp;Image's&nbsp;base&nbsp;name</tt></dd></dl>
+
+<hr>
+Class methods defined here:<br>
+<dl><dt><a name="BaseImageInstance-from_image"><strong>from_image</strong></a>(cls, image, name)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<hr>
+Data and other attributes defined here:<br>
+<dl><dt><strong>master_format</strong> = 'miff'</dl>
+
+<hr>
+Methods inherited from <a href="ImageType.html#ImageInstance">ImageInstance</a>:<br>
+<dl><dt><a name="BaseImageInstance-clone"><strong>clone</strong></a>(self, name)</dt><dd><tt>Returns&nbsp;a&nbsp;new&nbsp;<a href="#ImageHandle">ImageHandle</a>&nbsp;that&nbsp;encasulates&nbsp;is&nbsp;a&nbsp;copy&nbsp;of&nbsp;this&nbsp;one's&nbsp;image</tt></dd></dl>
+
+<dl><dt><a name="BaseImageInstance-convert"><strong>convert</strong></a>(self, kind)</dt></dl>
+
+<dl><dt><a name="BaseImageInstance-crop"><strong>crop</strong></a>(self, size, offset<font color="#909090">=(0, 0)</font>, kind<font color="#909090">=None</font>)</dt></dl>
+
+<dl><dt><a name="BaseImageInstance-file_path"><strong>file_path</strong></a>(self, basepath)</dt><dd><tt>Return&nbsp;a&nbsp;file&nbsp;path&nbsp;where&nbsp;a&nbsp;copy&nbsp;of&nbsp;the&nbsp;image&nbsp;can&nbsp;be&nbsp;found.<br>
+&nbsp;<br>
+The&nbsp;image&nbsp;will&nbsp;be&nbsp;loaded&nbsp;or&nbsp;otherwise&nbsp;created&nbsp;if&nbsp;needed&nbsp;in&nbsp;order&nbsp;to&nbsp;complete&nbsp;this&nbsp;call.<br>
+If&nbsp;basepath&nbsp;is&nbsp;not&nbsp;specified&nbsp;the&nbsp;file&nbsp;will&nbsp;be&nbsp;<br>
+&nbsp;<br>
+&nbsp;<br>
+:param:&nbsp;basepath:&nbsp;File&nbsp;system&nbsp;path&nbsp;to&nbsp;a&nbsp;directory&nbsp;where&nbsp;the&nbsp;image&nbsp;should&nbsp;be&nbsp;placed<br>
+:returns:&nbsp;string:&nbsp;Path&nbsp;to&nbsp;the&nbsp;file&nbsp;containing&nbsp;the&nbsp;image.</tt></dd></dl>
+
+<dl><dt><a name="BaseImageInstance-get_image_handle"><strong>get_image_handle</strong></a>(self)</dt><dd><tt>Returns&nbsp;the&nbsp;<a href="#ImageHandle">ImageHandle</a>&nbsp;for&nbsp;the&nbsp;image&nbsp;instance<br>
+:returns:&nbsp;<a href="#ImageHandle">ImageHandle</a></tt></dd></dl>
+
+<dl><dt><a name="BaseImageInstance-get_name"><strong>get_name</strong></a>(self)</dt><dd><tt>Return&nbsp;the&nbsp;ImageName&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;for&nbsp;this&nbsp;instance.<br>
+&nbsp;<br>
+:returns:&nbsp;ImageName:</tt></dd></dl>
+
+<dl><dt><a name="BaseImageInstance-resize"><strong>resize</strong></a>(self, size, kind<font color="#909090">=None</font>)</dt></dl>
+
+<dl><dt><a name="BaseImageInstance-thumbnail"><strong>thumbnail</strong></a>(self, size, options<font color="#909090">=None</font>, kind<font color="#909090">=None</font>)</dt><dd><tt>Returns&nbsp;a&nbsp;new&nbsp;<a href="#ImageInstance">ImageInstance</a>&nbsp;that&nbsp;contains&nbsp;a&nbsp;thumbnail&nbsp;image&nbsp;of&nbsp;this&nbsp;image.<br>
+&nbsp;<br>
+options&nbsp;are,&nbsp;"liquid"&nbsp;:&nbsp;Boolean&nbsp;-&nbsp;whether&nbsp;to&nbsp;allow&nbsp;liquid&nbsp;rescaling<br>
+"equalize"&nbsp;:&nbsp;Boolean&nbsp;-&nbsp;whether&nbsp;to&nbsp;apply&nbsp;histogram&nbsp;equalisation<br>
+"sharpen"&nbsp;:&nbsp;Boolean&nbsp;-&nbsp;whether&nbsp;to&nbsp;apply&nbsp;an&nbsp;unsharp&nbsp;mask&nbsp;sharpening<br>
+Default&nbsp;is&nbsp;to&nbsp;apply&nbsp;all&nbsp;three.&nbsp;<br>
+&nbsp;<br>
+If&nbsp;kind&nbsp;is&nbsp;provided&nbsp;the&nbsp;thumbnail&nbsp;will&nbsp;be&nbsp;in&nbsp;that&nbsp;image&nbsp;format,&nbsp;otherwise&nbsp;the&nbsp;system<br>
+default&nbsp;format&nbsp;for&nbsp;thumbnails&nbsp;will&nbsp;be&nbsp;used.<br>
+&nbsp;<br>
+"param:size:&nbsp;tuple&nbsp;(x_size,&nbsp;y_size):&nbsp;The&nbsp;constraining&nbsp;box&nbsp;size&nbsp;to&nbsp;fit&nbsp;the&nbsp;tumbnail&nbsp;into.<br>
+:param:options&nbsp;dict:&nbsp;enhancement&nbsp;options<br>
+:param:&nbsp;kind&nbsp;string:&nbsp;image&nbsp;format</tt></dd></dl>
+
+<hr>
+Class methods inherited from <a href="ImageType.html#ImageInstance">ImageInstance</a>:<br>
+<dl><dt><a name="BaseImageInstance-from_bytes"><strong>from_bytes</strong></a>(cls, bytes, name, kind<font color="#909090">=None</font>)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<dl><dt><a name="BaseImageInstance-from_file"><strong>from_file</strong></a>(cls, filename, name, kind<font color="#909090">=None</font>)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<dl><dt><a name="BaseImageInstance-from_filelike"><strong>from_filelike</strong></a>(cls, file, name, kind<font color="#909090">=None</font>)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<dl><dt><a name="BaseImageInstance-from_persistent"><strong>from_persistent</strong></a>(cls, store, path, name, kind<font color="#909090">=None</font>, size<font color="#909090">=0</font>)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<dl><dt><a name="BaseImageInstance-set_cache"><strong>set_cache</strong></a>(cls, cache)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<hr>
+Static methods inherited from <a href="ImageType.html#ImageInstance">ImageInstance</a>:<br>
+<dl><dt><a name="BaseImageInstance-__new__"><strong>__new__</strong></a>(klass, image_name, image_handle, *args, **kwargs)</dt></dl>
+
+<hr>
+Data descriptors inherited from <a href="ImageType.html#ImageInstance">ImageInstance</a>:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="GeneralImage">class <strong>GeneralImage</strong></a>(<a href="__builtin__.html#object">__builtin__.object</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Psuedo&nbsp;class&nbsp;that&nbsp;encapsulates&nbsp;the&nbsp;creation&nbsp;of&nbsp;the&nbsp;appropriate&nbsp;<a href="#ImageInstance">ImageInstance</a>&nbsp;class<br>
+&nbsp;<br>
+This&nbsp;probably&nbsp;isn't&nbsp;considered&nbsp;all&nbsp;that&nbsp;Pythonic.<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Class methods defined here:<br>
+<dl><dt><a name="GeneralImage-from_bytes"><strong>from_bytes</strong></a>(cls, bytes, name)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<dl><dt><a name="GeneralImage-from_cache"><strong>from_cache</strong></a>(cls, name, handle)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<dl><dt><a name="GeneralImage-from_file"><strong>from_file</strong></a>(cls, filename)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<dl><dt><a name="GeneralImage-from_filelike"><strong>from_filelike</strong></a>(cls, file, name)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<dl><dt><a name="GeneralImage-from_persistent"><strong>from_persistent</strong></a>(cls, store, path)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<hr>
+Static methods defined here:<br>
+<dl><dt><a name="GeneralImage-__new__"><strong>__new__</strong></a>(klass, image_name, image_handle, full_name, *args, **kwargs)</dt></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="ImageHandle">class <strong>ImageHandle</strong></a>(<a href="__builtin__.html#object">__builtin__.object</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Encapsulate&nbsp;the&nbsp;notion&nbsp;of&nbsp;a&nbsp;handle&nbsp;on&nbsp;an&nbsp;image.<br>
+&nbsp;<br>
+Images&nbsp;may&nbsp;exist&nbsp;in:<br>
+Persistent&nbsp;storage&nbsp;(ie&nbsp;Swift)<br>
+Local&nbsp;file&nbsp;system&nbsp;(ie&nbsp;/var/tmp/xxx)<br>
+In&nbsp;memory&nbsp;(ie&nbsp;as&nbsp;a&nbsp;blob&nbsp;of&nbsp;bytes,&nbsp;or&nbsp;a&nbsp;Wand&nbsp;image&nbsp;<a href="__builtin__.html#object">object</a>)<br>
+&nbsp;<br>
+An&nbsp;images&nbsp;can&nbsp;exist&nbsp;in&nbsp;more&nbsp;than&nbsp;one&nbsp;of&nbsp;these&nbsp;at&nbsp;once.<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="ImageHandle-__init__"><strong>__init__</strong></a>(self, name<font color="#909090">=None</font>, filename<font color="#909090">=None</font>, filelike<font color="#909090">=None</font>, store<font color="#909090">=None</font>, path<font color="#909090">=None</font>, bytes<font color="#909090">=None</font>, kind<font color="#909090">=None</font>, image<font color="#909090">=None</font>, eager<font color="#909090">=False</font>, size<font color="#909090">=0</font>)</dt></dl>
+
+<dl><dt><a name="ImageHandle-__str__"><strong>__str__</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="ImageHandle-add_file_path"><strong>add_file_path</strong></a>(self, path)</dt></dl>
+
+<dl><dt><a name="ImageHandle-as_file"><strong>as_file</strong></a>(self, name, dir_path, mode<font color="#909090">=None</font>)</dt><dd><tt>Return&nbsp;a&nbsp;file&nbsp;path&nbsp;of&nbsp;a&nbsp;copy&nbsp;of&nbsp;the&nbsp;Image<br>
+&nbsp;<br>
+The&nbsp;returned&nbsp;file_path&nbsp;is&nbsp;the&nbsp;concatenation&nbsp;of&nbsp;the&nbsp;provided&nbsp;directory&nbsp;path&nbsp;and&nbsp;the&nbsp;(mangled&nbsp;if&nbsp;nesessary)<br>
+file&nbsp;name&nbsp;of&nbsp;the&nbsp;created&nbsp;image&nbsp;file.&nbsp;&nbsp;The&nbsp;provided&nbsp;name&nbsp;must&nbsp;include&nbsp;any&nbsp;file&nbsp;type&nbsp;suffix&nbsp;if&nbsp;needed.<br>
+&nbsp;<br>
+:param:&nbsp;image&nbsp;name:&nbsp;The&nbsp;ImageName.name&nbsp;for&nbsp;the&nbsp;image<br>
+:param:&nbsp;dir_path&nbsp;string:&nbsp;path&nbsp;to&nbsp;the&nbsp;directory&nbsp;where&nbsp;the&nbsp;image&nbsp;should&nbsp;be&nbsp;stored<br>
+:param:&nbsp;mode&nbsp;integer:&nbsp;if&nbsp;set,&nbsp;protection&nbsp;mode&nbsp;bits&nbsp;on&nbsp;file.&nbsp;&nbsp;<br>
+:returns:&nbsp;string:&nbsp;path&nbsp;where&nbsp;the&nbsp;file&nbsp;is&nbsp;stored</tt></dd></dl>
+
+<dl><dt><a name="ImageHandle-as_filelike"><strong>as_filelike</strong></a>(self)</dt><dd><tt>Return&nbsp;the&nbsp;image&nbsp;bytestream&nbsp;as&nbsp;a&nbsp;Python&nbsp;"filelike"&nbsp;<a href="__builtin__.html#object">object</a><br>
+&nbsp;<br>
+:returns:&nbsp;file&nbsp;like:</tt></dd></dl>
+
+<dl><dt><a name="ImageHandle-as_persistent"><strong>as_persistent</strong></a>(self, name, store<font color="#909090">=None</font>)</dt><dd><tt>Return&nbsp;a&nbsp;reference&nbsp;to&nbsp;a&nbsp;persistent&nbsp;<a href="__builtin__.html#object">object</a>.<br>
+&nbsp;<br>
+If&nbsp;the&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;is&nbsp;not&nbsp;currently&nbsp;in&nbsp;the&nbsp;store&nbsp;it&nbsp;will&nbsp;be&nbsp;uploaded&nbsp;so&nbsp;the&nbsp;reference&nbsp;is&nbsp;good<br>
+Note,&nbsp;if&nbsp;the&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;has&nbsp;been&nbsp;loaded&nbsp;to&nbsp;the&nbsp;store&nbsp;once,&nbsp;calling&nbsp;this&nbsp;a&nbsp;second&nbsp;time,&nbsp;even&nbsp;with&nbsp;a&nbsp;different&nbsp;name,<br>
+will&nbsp;not&nbsp;effect&nbsp;a&nbsp;new&nbsp;upload.&nbsp;<br>
+&nbsp;<br>
+:param:&nbsp;name:&nbsp;string:&nbsp;Name&nbsp;by&nbsp;which&nbsp;the&nbsp;image&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;will&nbsp;be&nbsp;known&nbsp;in&nbsp;the&nbsp;store&nbsp;is&nbsp;it&nbsp;not&nbsp;already&nbsp;there<br>
+:param:&nbsp;store:&nbsp;instance&nbsp;of&nbsp;a&nbsp;subclass&nbsp;of&nbsp;ImageStore.<br>
+:returns:&nbsp;string:&nbsp;reference&nbsp;that&nbsp;can&nbsp;be&nbsp;used&nbsp;to&nbsp;retrieve&nbsp;the&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;from&nbsp;the&nbsp;store</tt></dd></dl>
+
+<dl><dt><a name="ImageHandle-bytes"><strong>bytes</strong></a>(self)</dt><dd><tt>Return&nbsp;a&nbsp;blob&nbsp;of&nbsp;bytes&nbsp;encapsulating&nbsp;the&nbsp;image,&nbsp;as&nbsp;provided&nbsp;by&nbsp;Wand.image<br>
+&nbsp;<br>
+If&nbsp;there&nbsp;is&nbsp;no&nbsp;extant&nbsp;Wand&nbsp;Image&nbsp;it&nbsp;will&nbsp;be&nbsp;downloaded&nbsp;from&nbsp;either&nbsp;the&nbsp;local&nbsp;cache&nbsp;or&nbsp;the&nbsp;persistent&nbsp;store</tt></dd></dl>
+
+<dl><dt><a name="ImageHandle-clone"><strong>clone</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="ImageHandle-convert"><strong>convert</strong></a>(self, kind)</dt></dl>
+
+<dl><dt><a name="ImageHandle-crop"><strong>crop</strong></a>(self, x_size, y_size, x_offset, y_offset)</dt></dl>
+
+<dl><dt><a name="ImageHandle-has_persistence"><strong>has_persistence</strong></a>(self)</dt><dd><tt>Returns&nbsp;whether&nbsp;there&nbsp;is&nbsp;a&nbsp;persistent&nbsp;copy&nbsp;of&nbsp;this&nbsp;image.<br>
+&nbsp;<br>
+Useful&nbsp;to&nbsp;decide&nbsp;if,&nbsp;and&nbsp;when,&nbsp;a&nbsp;persistent&nbsp;copy&nbsp;of&nbsp;a&nbsp;must_retain&nbsp;image&nbsp;should&nbsp;be&nbsp;written&nbsp;back,&nbsp;or<br>
+whether&nbsp;to&nbsp;force&nbsp;persistent&nbsp;caching&nbsp;of&nbsp;a&nbsp;derived&nbsp;iamge.<br>
+&nbsp;<br>
+:returns:&nbsp;Boolean:&nbsp;Whether&nbsp;a&nbsp;persistent&nbsp;copy&nbsp;of&nbsp;this&nbsp;image&nbsp;exists</tt></dd></dl>
+
+<dl><dt><a name="ImageHandle-kind"><strong>kind</strong></a>(self)</dt><dd><tt>Returns&nbsp;the&nbsp;format&nbsp;of&nbsp;the&nbsp;image,&nbsp;as&nbsp;defined&nbsp;by&nbsp;the&nbsp;Wand&nbsp;image&nbsp;format&nbsp;strings.<br>
+&nbsp;<br>
+If&nbsp;the&nbsp;kind&nbsp;has&nbsp;not&nbsp;been&nbsp;determined&nbsp;from&nbsp;the&nbsp;name&nbsp;or&nbsp;otherwise&nbsp;set,&nbsp;the&nbsp;actual&nbsp;image&nbsp;will&nbsp;need&nbsp;to&nbsp;be<br>
+loaded&nbsp;and&nbsp;the&nbsp;format&nbsp;Wand&nbsp;believes&nbsp;it&nbsp;to&nbsp;be&nbsp;retured.&nbsp;&nbsp;Thus&nbsp;this&nbsp;can&nbsp;be&nbsp;an&nbsp;unexpectedly&nbsp;expensive&nbsp;operation.<br>
+&nbsp;<br>
+:return:&nbsp;string:&nbsp;Wand&nbsp;image&nbsp;format</tt></dd></dl>
+
+<dl><dt><a name="ImageHandle-md5"><strong>md5</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="ImageHandle-resize"><strong>resize</strong></a>(self, size)</dt></dl>
+
+<dl><dt><a name="ImageHandle-size"><strong>size</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="ImageHandle-strip"><strong>strip</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="ImageHandle-stripped"><strong>stripped</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="ImageHandle-thumbnail"><strong>thumbnail</strong></a>(self, size, kind<font color="#909090">=None</font>, **kwargs)</dt><dd><tt>Create&nbsp;a&nbsp;thumbnail&nbsp;of&nbsp;the&nbsp;image.&nbsp;&nbsp;<br>
+&nbsp;<br>
+:param:&nbsp;size&nbsp;tuple&nbsp;x,&nbsp;y:&nbsp;size&nbsp;to&nbsp;fit&nbsp;the&nbsp;thumbnail&nbsp;within.&nbsp;&nbsp;The&nbsp;thumbnaill&nbsp;may&nbsp;be&nbsp;smaller&nbsp;than&nbsp;this&nbsp;size,&nbsp;but&nbsp;will&nbsp;fill&nbsp;one&nbsp;dimension,&nbsp;if&nbsp;not&nbsp;both.<br>
+"param:&nbsp;options&nbsp;dict:&nbsp;set&nbsp;of&nbsp;options&nbsp;that&nbsp;may&nbsp;govern&nbsp;exactly&nbsp;how&nbsp;the&nbsp;thumbnail&nbsp;is&nbsp;created.&nbsp;These&nbsp;override&nbsp;the&nbsp;global&nbsp;configuration&nbsp;options<br>
+:returns:&nbsp;<a href="#ImageHandle">ImageHandle</a>&nbsp;instance:&nbsp;A&nbsp;new&nbsp;<a href="#ImageHandle">ImageHandle</a>&nbsp;that&nbsp;contains&nbsp;the&nbsp;thumbnail:<br>
+&nbsp;<br>
+We&nbsp;allow&nbsp;options&nbsp;to&nbsp;make&nbsp;the&nbsp;thumbnail&nbsp;more&nbsp;generally&nbsp;useful.&nbsp;&nbsp;We&nbsp;try&nbsp;to&nbsp;avoid&nbsp;situations&nbsp;where&nbsp;the&nbsp;thumbnail&nbsp;is&nbsp;cropped,&nbsp;we&nbsp;may<br>
+allow&nbsp;liquid&nbsp;resize&nbsp;to&nbsp;preserve&nbsp;information&nbsp;in&nbsp;the&nbsp;case&nbsp;of&nbsp;very&nbsp;wide&nbsp;or&nbsp;tall&nbsp;images,&nbsp;and&nbsp;we&nbsp;allow&nbsp;some&nbsp;sharpening&nbsp;and&nbsp;brightness&nbsp;correction&nbsp;of&nbsp;the&nbsp;image<br>
+to&nbsp;make&nbsp;it&nbsp;generally&nbsp;easier&nbsp;to&nbsp;view&nbsp;at&nbsp;reduced&nbsp;scale.</tt></dd></dl>
+
+<hr>
+Class methods defined here:<br>
+<dl><dt><a name="ImageHandle-from_bytes"><strong>from_bytes</strong></a>(cls, the_bytes, kind<font color="#909090">=None</font>, eager<font color="#909090">=False</font>)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<dl><dt><a name="ImageHandle-from_file"><strong>from_file</strong></a>(cls, filename, kind<font color="#909090">=None</font>, eager<font color="#909090">=False</font>)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<dl><dt><a name="ImageHandle-from_filelike"><strong>from_filelike</strong></a>(cls, the_file, kind<font color="#909090">=&lt;function kind&gt;</font>, eager<font color="#909090">=True</font>)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<dl><dt><a name="ImageHandle-from_image"><strong>from_image</strong></a>(cls, the_image)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<dl><dt><a name="ImageHandle-from_persistent"><strong>from_persistent</strong></a>(cls, store, path, kind<font color="#909090">=None</font>, eager<font color="#909090">=False</font>, size<font color="#909090">=0</font>)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<dl><dt><a name="ImageHandle-set_configuration"><strong>set_configuration</strong></a>(cls, config)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="ImageInstance">class <strong>ImageInstance</strong></a>(<a href="__builtin__.html#object">__builtin__.object</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Encapsulates&nbsp;a&nbsp;single&nbsp;image&nbsp;<br>
+An&nbsp;image&nbsp;instance&nbsp;is&nbsp;essentially&nbsp;a&nbsp;name/image&nbsp;pair<br>
+&nbsp;<br>
+Does&nbsp;not&nbsp;internally&nbsp;store&nbsp;image&nbsp;data&nbsp;-&nbsp;this&nbsp;is&nbsp;managed&nbsp;by&nbsp;an&nbsp;<a href="#ImageHandle">ImageHandle</a><br>
+Names&nbsp;are&nbsp;encapsulated&nbsp;by&nbsp;ImageName<br>
+&nbsp;<br>
+Image&nbsp;instances&nbsp;are&nbsp;single&nbsp;objects&nbsp;per&nbsp;image,&nbsp;where&nbsp;uniquness&nbsp;is&nbsp;defined&nbsp;by&nbsp;name.<br>
+Names&nbsp;within&nbsp;the&nbsp;system&nbsp;are&nbsp;created&nbsp;in&nbsp;such&nbsp;a&nbsp;way&nbsp;as&nbsp;to&nbsp;be&nbsp;(for&nbsp;all&nbsp;useful&nbsp;purposes)<br>
+uniquely&nbsp;determined&nbsp;by&nbsp;the&nbsp;image&nbsp;content.&nbsp;&nbsp;Derived&nbsp;images&nbsp;append&nbsp;derivation&nbsp;information<br>
+to&nbsp;the&nbsp;name.&nbsp;&nbsp;Thus&nbsp;an&nbsp;operation&nbsp;to&nbsp;derive&nbsp;an&nbsp;image&nbsp;from&nbsp;an&nbsp;existing&nbsp;one&nbsp;will&nbsp;always&nbsp;yield<br>
+a&nbsp;name&nbsp;unique&nbsp;that&nbsp;derivation.&nbsp;An&nbsp;attempt&nbsp;to&nbsp;create&nbsp;a&nbsp;new&nbsp;<a href="#ImageInstance">ImageInstance</a>&nbsp;with&nbsp;that&nbsp;name<br>
+will&nbsp;yield&nbsp;the&nbsp;existing&nbsp;one.<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="ImageInstance-__init__"><strong>__init__</strong></a>(self, image_name<font color="#909090">=None</font>, image_handle<font color="#909090">=None</font>, kind<font color="#909090">=None</font>, size<font color="#909090">=None</font>)</dt></dl>
+
+<dl><dt><a name="ImageInstance-__str__"><strong>__str__</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="ImageInstance-clone"><strong>clone</strong></a>(self, name)</dt><dd><tt>Returns&nbsp;a&nbsp;new&nbsp;<a href="#ImageHandle">ImageHandle</a>&nbsp;that&nbsp;encasulates&nbsp;is&nbsp;a&nbsp;copy&nbsp;of&nbsp;this&nbsp;one's&nbsp;image</tt></dd></dl>
+
+<dl><dt><a name="ImageInstance-convert"><strong>convert</strong></a>(self, kind)</dt></dl>
+
+<dl><dt><a name="ImageInstance-crop"><strong>crop</strong></a>(self, size, offset<font color="#909090">=(0, 0)</font>, kind<font color="#909090">=None</font>)</dt></dl>
+
+<dl><dt><a name="ImageInstance-file_path"><strong>file_path</strong></a>(self, basepath)</dt><dd><tt>Return&nbsp;a&nbsp;file&nbsp;path&nbsp;where&nbsp;a&nbsp;copy&nbsp;of&nbsp;the&nbsp;image&nbsp;can&nbsp;be&nbsp;found.<br>
+&nbsp;<br>
+The&nbsp;image&nbsp;will&nbsp;be&nbsp;loaded&nbsp;or&nbsp;otherwise&nbsp;created&nbsp;if&nbsp;needed&nbsp;in&nbsp;order&nbsp;to&nbsp;complete&nbsp;this&nbsp;call.<br>
+If&nbsp;basepath&nbsp;is&nbsp;not&nbsp;specified&nbsp;the&nbsp;file&nbsp;will&nbsp;be&nbsp;<br>
+&nbsp;<br>
+&nbsp;<br>
+:param:&nbsp;basepath:&nbsp;File&nbsp;system&nbsp;path&nbsp;to&nbsp;a&nbsp;directory&nbsp;where&nbsp;the&nbsp;image&nbsp;should&nbsp;be&nbsp;placed<br>
+:returns:&nbsp;string:&nbsp;Path&nbsp;to&nbsp;the&nbsp;file&nbsp;containing&nbsp;the&nbsp;image.</tt></dd></dl>
+
+<dl><dt><a name="ImageInstance-get_image_handle"><strong>get_image_handle</strong></a>(self)</dt><dd><tt>Returns&nbsp;the&nbsp;<a href="#ImageHandle">ImageHandle</a>&nbsp;for&nbsp;the&nbsp;image&nbsp;instance<br>
+:returns:&nbsp;<a href="#ImageHandle">ImageHandle</a></tt></dd></dl>
+
+<dl><dt><a name="ImageInstance-get_name"><strong>get_name</strong></a>(self)</dt><dd><tt>Return&nbsp;the&nbsp;ImageName&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;for&nbsp;this&nbsp;instance.<br>
+&nbsp;<br>
+:returns:&nbsp;ImageName:</tt></dd></dl>
+
+<dl><dt><a name="ImageInstance-resize"><strong>resize</strong></a>(self, size, kind<font color="#909090">=None</font>)</dt></dl>
+
+<dl><dt><a name="ImageInstance-thumbnail"><strong>thumbnail</strong></a>(self, size, options<font color="#909090">=None</font>, kind<font color="#909090">=None</font>)</dt><dd><tt>Returns&nbsp;a&nbsp;new&nbsp;<a href="#ImageInstance">ImageInstance</a>&nbsp;that&nbsp;contains&nbsp;a&nbsp;thumbnail&nbsp;image&nbsp;of&nbsp;this&nbsp;image.<br>
+&nbsp;<br>
+options&nbsp;are,&nbsp;"liquid"&nbsp;:&nbsp;Boolean&nbsp;-&nbsp;whether&nbsp;to&nbsp;allow&nbsp;liquid&nbsp;rescaling<br>
+"equalize"&nbsp;:&nbsp;Boolean&nbsp;-&nbsp;whether&nbsp;to&nbsp;apply&nbsp;histogram&nbsp;equalisation<br>
+"sharpen"&nbsp;:&nbsp;Boolean&nbsp;-&nbsp;whether&nbsp;to&nbsp;apply&nbsp;an&nbsp;unsharp&nbsp;mask&nbsp;sharpening<br>
+Default&nbsp;is&nbsp;to&nbsp;apply&nbsp;all&nbsp;three.&nbsp;<br>
+&nbsp;<br>
+If&nbsp;kind&nbsp;is&nbsp;provided&nbsp;the&nbsp;thumbnail&nbsp;will&nbsp;be&nbsp;in&nbsp;that&nbsp;image&nbsp;format,&nbsp;otherwise&nbsp;the&nbsp;system<br>
+default&nbsp;format&nbsp;for&nbsp;thumbnails&nbsp;will&nbsp;be&nbsp;used.<br>
+&nbsp;<br>
+"param:size:&nbsp;tuple&nbsp;(x_size,&nbsp;y_size):&nbsp;The&nbsp;constraining&nbsp;box&nbsp;size&nbsp;to&nbsp;fit&nbsp;the&nbsp;tumbnail&nbsp;into.<br>
+:param:options&nbsp;dict:&nbsp;enhancement&nbsp;options<br>
+:param:&nbsp;kind&nbsp;string:&nbsp;image&nbsp;format</tt></dd></dl>
+
+<hr>
+Class methods defined here:<br>
+<dl><dt><a name="ImageInstance-from_bytes"><strong>from_bytes</strong></a>(cls, bytes, name, kind<font color="#909090">=None</font>)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<dl><dt><a name="ImageInstance-from_file"><strong>from_file</strong></a>(cls, filename, name, kind<font color="#909090">=None</font>)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<dl><dt><a name="ImageInstance-from_filelike"><strong>from_filelike</strong></a>(cls, file, name, kind<font color="#909090">=None</font>)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<dl><dt><a name="ImageInstance-from_image"><strong>from_image</strong></a>(cls, image, name)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<dl><dt><a name="ImageInstance-from_persistent"><strong>from_persistent</strong></a>(cls, store, path, name, kind<font color="#909090">=None</font>, size<font color="#909090">=0</font>)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<dl><dt><a name="ImageInstance-set_cache"><strong>set_cache</strong></a>(cls, cache)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<hr>
+Static methods defined here:<br>
+<dl><dt><a name="ImageInstance-__new__"><strong>__new__</strong></a>(klass, image_name, image_handle, *args, **kwargs)</dt></dl>
+
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="ImageMetaData">class <strong>ImageMetaData</strong></a></font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Encalsulates&nbsp;whatever&nbsp;metadata&nbsp;we&nbsp;find&nbsp;in&nbsp;an&nbsp;image<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="ImageMetaData-__init__"><strong>__init__</strong></a>(self, metadata)</dt></dl>
+
+<dl><dt><a name="ImageMetaData-__str__"><strong>__str__</strong></a>(self)</dt></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="ImageMetadata">class <strong>ImageMetadata</strong></a></font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Encapsulates&nbsp;the&nbsp;metadata&nbsp;stored&nbsp;for&nbsp;an&nbsp;image<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="ImageMetadata-__init__"><strong>__init__</strong></a>(self, xml)</dt></dl>
+
+<dl><dt><a name="ImageMetadata-__str__"><strong>__str__</strong></a>(self)</dt><dd><tt>Return&nbsp;XML&nbsp;represenation&nbsp;of&nbsp;metadata&nbsp;suitable&nbsp;for&nbsp;injection&nbsp;back&nbsp;into&nbsp;the&nbsp;store.</tt></dd></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="ImageSet">class <strong>ImageSet</strong></a></font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Encapsulates&nbsp;everything&nbsp;about&nbsp;a&nbsp;specific&nbsp;image,&nbsp;including&nbsp;anything&nbsp;derived&nbsp;from&nbsp;it<br>
+Provides&nbsp;methods&nbsp;to&nbsp;create&nbsp;new&nbsp;derived&nbsp;images<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="ImageSet-__init__"><strong>__init__</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="ImageSet-add"><strong>add</strong></a>(self, instance)</dt></dl>
+
+</td></tr></table> <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="OriginalImage">class <strong>OriginalImage</strong></a>(<a href="ImageType.html#ImageInstance">ImageInstance</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Encasulates&nbsp;the&nbsp;actual&nbsp;image&nbsp;as&nbsp;uploaded&nbsp;to&nbsp;the&nbsp;repository.<br>
+In&nbsp;general&nbsp;these&nbsp;images&nbsp;are&nbsp;never&nbsp;served&nbsp;out,&nbsp;and&nbsp;should&nbsp;never&nbsp;be,&nbsp;in&nbsp;any&nbsp;manner,&nbsp;altered.<br>
+They&nbsp;are&nbsp;preserved&nbsp;byte&nbsp;for&nbsp;byte&nbsp;from&nbsp;the&nbsp;original&nbsp;upload.<br>
+&nbsp;<br>
+An&nbsp;original&nbsp;image&nbsp;may&nbsp;be&nbsp;constructed&nbsp;from&nbsp;a&nbsp;new&nbsp;image&nbsp;file&nbsp;gthat&nbsp;is&nbsp;to&nbsp;be&nbsp;added&nbsp;to&nbsp;the&nbsp;repository,&nbsp;or&nbsp;may<br>
+be&nbsp;constructed&nbsp;from&nbsp;a&nbsp;stored&nbsp;image&nbsp;file&nbsp;that&nbsp;is&nbsp;resident&nbsp;within&nbsp;the&nbsp;repository&nbsp;stores.&nbsp;<br>
+The&nbsp;only&nbsp;difference&nbsp;is&nbsp;that&nbsp;a&nbsp;new&nbsp;image&nbsp;will&nbsp;need&nbsp;to&nbsp;have&nbsp;a&nbsp;base&nbsp;name&nbsp;determined&nbsp;for&nbsp;it&nbsp;from&nbsp;the&nbsp;image&nbsp;content.<br>
+Existing&nbsp;OriginalImages&nbsp;already&nbsp;have&nbsp;a&nbsp;generated&nbsp;name.&nbsp;&nbsp;Generation&nbsp;of&nbsp;new&nbsp;names&nbsp;is&nbsp;suppressed&nbsp;when&nbsp;reloading<br>
+existing&nbsp;images.<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="ImageType.html#OriginalImage">OriginalImage</a></dd>
+<dd><a href="ImageType.html#ImageInstance">ImageInstance</a></dd>
+<dd><a href="__builtin__.html#object">__builtin__.object</a></dd>
+</dl>
+<hr>
+Methods defined here:<br>
+<dl><dt><a name="OriginalImage-__init__"><strong>__init__</strong></a>(self, image_name, image_handle, kind<font color="#909090">=None</font>, full_name<font color="#909090">=False</font>)</dt><dd><tt>Construct&nbsp;a&nbsp;new&nbsp;<a href="#OriginalImage">OriginalImage</a><br>
+param:&nbsp;byte&nbsp;stream&nbsp;like&nbsp;<a href="__builtin__.html#object">object</a>:&nbsp;The&nbsp;byte&nbsp;stream&nbsp;of&nbsp;the&nbsp;image&nbsp;itself<br>
+param:&nbsp;string:&nbsp;Name&nbsp;of&nbsp;the&nbsp;image&nbsp;as&nbsp;recived&nbsp;from&nbsp;the&nbsp;uploading&nbsp;client</tt></dd></dl>
+
+<dl><dt><a name="OriginalImage-baseimage"><strong>baseimage</strong></a>(self)</dt><dd><tt>Create&nbsp;the&nbsp;base&nbsp;image&nbsp;from&nbsp;the&nbsp;original&nbsp;Image</tt></dd></dl>
+
+<dl><dt><a name="OriginalImage-get_exif"><strong>get_exif</strong></a>(self)</dt><dd><tt>Return&nbsp;a&nbsp;dictionary&nbsp;of&nbsp;any&nbsp;EXIF&nbsp;data</tt></dd></dl>
+
+<dl><dt><a name="OriginalImage-url"><strong>url</strong></a>(self, seconds<font color="#909090">=None</font>)</dt><dd><tt>We&nbsp;never&nbsp;give&nbsp;out&nbsp;URLs&nbsp;for&nbsp;original&nbsp;images.<br>
+&nbsp;<br>
+:returns:&nbsp;None</tt></dd></dl>
+
+<hr>
+Class methods defined here:<br>
+<dl><dt><a name="OriginalImage-from_bytes"><strong>from_bytes</strong></a>(cls, bytes, name)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<dl><dt><a name="OriginalImage-from_cache"><strong>from_cache</strong></a>(cls, name, handle)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<dl><dt><a name="OriginalImage-from_file"><strong>from_file</strong></a>(cls, filename)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<dl><dt><a name="OriginalImage-from_filelike"><strong>from_filelike</strong></a>(cls, file, name)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<dl><dt><a name="OriginalImage-from_persistent"><strong>from_persistent</strong></a>(cls, store, path)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<hr>
+Methods inherited from <a href="ImageType.html#ImageInstance">ImageInstance</a>:<br>
+<dl><dt><a name="OriginalImage-__str__"><strong>__str__</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="OriginalImage-clone"><strong>clone</strong></a>(self, name)</dt><dd><tt>Returns&nbsp;a&nbsp;new&nbsp;<a href="#ImageHandle">ImageHandle</a>&nbsp;that&nbsp;encasulates&nbsp;is&nbsp;a&nbsp;copy&nbsp;of&nbsp;this&nbsp;one's&nbsp;image</tt></dd></dl>
+
+<dl><dt><a name="OriginalImage-convert"><strong>convert</strong></a>(self, kind)</dt></dl>
+
+<dl><dt><a name="OriginalImage-crop"><strong>crop</strong></a>(self, size, offset<font color="#909090">=(0, 0)</font>, kind<font color="#909090">=None</font>)</dt></dl>
+
+<dl><dt><a name="OriginalImage-file_path"><strong>file_path</strong></a>(self, basepath)</dt><dd><tt>Return&nbsp;a&nbsp;file&nbsp;path&nbsp;where&nbsp;a&nbsp;copy&nbsp;of&nbsp;the&nbsp;image&nbsp;can&nbsp;be&nbsp;found.<br>
+&nbsp;<br>
+The&nbsp;image&nbsp;will&nbsp;be&nbsp;loaded&nbsp;or&nbsp;otherwise&nbsp;created&nbsp;if&nbsp;needed&nbsp;in&nbsp;order&nbsp;to&nbsp;complete&nbsp;this&nbsp;call.<br>
+If&nbsp;basepath&nbsp;is&nbsp;not&nbsp;specified&nbsp;the&nbsp;file&nbsp;will&nbsp;be&nbsp;<br>
+&nbsp;<br>
+&nbsp;<br>
+:param:&nbsp;basepath:&nbsp;File&nbsp;system&nbsp;path&nbsp;to&nbsp;a&nbsp;directory&nbsp;where&nbsp;the&nbsp;image&nbsp;should&nbsp;be&nbsp;placed<br>
+:returns:&nbsp;string:&nbsp;Path&nbsp;to&nbsp;the&nbsp;file&nbsp;containing&nbsp;the&nbsp;image.</tt></dd></dl>
+
+<dl><dt><a name="OriginalImage-get_image_handle"><strong>get_image_handle</strong></a>(self)</dt><dd><tt>Returns&nbsp;the&nbsp;<a href="#ImageHandle">ImageHandle</a>&nbsp;for&nbsp;the&nbsp;image&nbsp;instance<br>
+:returns:&nbsp;<a href="#ImageHandle">ImageHandle</a></tt></dd></dl>
+
+<dl><dt><a name="OriginalImage-get_name"><strong>get_name</strong></a>(self)</dt><dd><tt>Return&nbsp;the&nbsp;ImageName&nbsp;<a href="__builtin__.html#object">object</a>&nbsp;for&nbsp;this&nbsp;instance.<br>
+&nbsp;<br>
+:returns:&nbsp;ImageName:</tt></dd></dl>
+
+<dl><dt><a name="OriginalImage-resize"><strong>resize</strong></a>(self, size, kind<font color="#909090">=None</font>)</dt></dl>
+
+<dl><dt><a name="OriginalImage-thumbnail"><strong>thumbnail</strong></a>(self, size, options<font color="#909090">=None</font>, kind<font color="#909090">=None</font>)</dt><dd><tt>Returns&nbsp;a&nbsp;new&nbsp;<a href="#ImageInstance">ImageInstance</a>&nbsp;that&nbsp;contains&nbsp;a&nbsp;thumbnail&nbsp;image&nbsp;of&nbsp;this&nbsp;image.<br>
+&nbsp;<br>
+options&nbsp;are,&nbsp;"liquid"&nbsp;:&nbsp;Boolean&nbsp;-&nbsp;whether&nbsp;to&nbsp;allow&nbsp;liquid&nbsp;rescaling<br>
+"equalize"&nbsp;:&nbsp;Boolean&nbsp;-&nbsp;whether&nbsp;to&nbsp;apply&nbsp;histogram&nbsp;equalisation<br>
+"sharpen"&nbsp;:&nbsp;Boolean&nbsp;-&nbsp;whether&nbsp;to&nbsp;apply&nbsp;an&nbsp;unsharp&nbsp;mask&nbsp;sharpening<br>
+Default&nbsp;is&nbsp;to&nbsp;apply&nbsp;all&nbsp;three.&nbsp;<br>
+&nbsp;<br>
+If&nbsp;kind&nbsp;is&nbsp;provided&nbsp;the&nbsp;thumbnail&nbsp;will&nbsp;be&nbsp;in&nbsp;that&nbsp;image&nbsp;format,&nbsp;otherwise&nbsp;the&nbsp;system<br>
+default&nbsp;format&nbsp;for&nbsp;thumbnails&nbsp;will&nbsp;be&nbsp;used.<br>
+&nbsp;<br>
+"param:size:&nbsp;tuple&nbsp;(x_size,&nbsp;y_size):&nbsp;The&nbsp;constraining&nbsp;box&nbsp;size&nbsp;to&nbsp;fit&nbsp;the&nbsp;tumbnail&nbsp;into.<br>
+:param:options&nbsp;dict:&nbsp;enhancement&nbsp;options<br>
+:param:&nbsp;kind&nbsp;string:&nbsp;image&nbsp;format</tt></dd></dl>
+
+<hr>
+Class methods inherited from <a href="ImageType.html#ImageInstance">ImageInstance</a>:<br>
+<dl><dt><a name="OriginalImage-from_image"><strong>from_image</strong></a>(cls, image, name)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<dl><dt><a name="OriginalImage-set_cache"><strong>set_cache</strong></a>(cls, cache)<font color="#909090"><font face="helvetica, arial"> from <a href="__builtin__.html#type">__builtin__.type</a></font></font></dt></dl>
+
+<hr>
+Static methods inherited from <a href="ImageType.html#ImageInstance">ImageInstance</a>:<br>
+<dl><dt><a name="OriginalImage-__new__"><strong>__new__</strong></a>(klass, image_name, image_handle, *args, **kwargs)</dt></dl>
+
+<hr>
+Data descriptors inherited from <a href="ImageType.html#ImageInstance">ImageInstance</a>:<br>
+<dl><dt><strong>__dict__</strong></dt>
+<dd><tt>dictionary&nbsp;for&nbsp;instance&nbsp;variables&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+</td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#eeaa77">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt><a name="-test"><strong>test</strong></a>()</dt></dl>
+</td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#55aa55">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Data</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#55aa55"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><strong>logger</strong> = &lt;logging.Logger object&gt;</td></tr></table>
+</body></html>
