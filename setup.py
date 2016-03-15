@@ -88,6 +88,7 @@ setup(
     # If there are data files included in your packages that need to be
     # installed, specify them here.  If using Python 2.6 or less, then these
     # have to be included in MANIFEST.in as well.
+    include_package_data = True, 
     package_data={
 #        'sample': ['package_data.dat'],
             },
@@ -103,7 +104,7 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': [
-            'image_repo=src.Configuration:main',
+            'image_repo=image_repository.Configuration:main',
         ],
     },
 )
