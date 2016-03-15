@@ -64,7 +64,7 @@ setup(
     # simple. Or you can use find_packages().
     packages=find_packages('src', exclude=['contrib', 'docs', 'tests']),
 
-    package_dir = {'':'src'}
+    package_dir = {'':'src'},
     
     # Alternatively, if you want to distribute just a my_module.py, uncomment
     # this:
