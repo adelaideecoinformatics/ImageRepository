@@ -28,7 +28,7 @@ setup(
     long_description=long_description,
 
     # The project's main homepage.
-    url='https://github.com/https://github.com/adelaideecoinformatics/image_repository',
+    url='https://github.com/https://github.com/adelaideecoinformatics/ImageRepository',
 
     # Author details
     author='Francis Vaughan',
@@ -104,7 +104,7 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': [
-            'image_repo=image_repository.Configuration:main',
+            'image_repo = Configuration:main',
         ],
     },
 )
