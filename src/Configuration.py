@@ -673,6 +673,9 @@ class ImageRepository:
         
             sys.exit(0)
 
-if __name__ == "__main__":
+def main():
     repo = ImageRepository()
     repo.repository_server()
+    
+if __name__ == "__main__":
+    main()
