@@ -62,7 +62,7 @@ setup(
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
-    packages=find_packages('src', exclude=['test']),
+    packages=[] # find_packages('src', include=['doc'], exclude=['test']),
 
     package_dir = {'image_repo':'src'},
     
@@ -88,7 +88,7 @@ setup(
     # If there are data files included in your packages that need to be
     # installed, specify them here.  If using Python 2.6 or less, then these
     # have to be included in MANIFEST.in as well.
-    include_package_data = True, 
+#    include_package_data = True, 
     package_data={
 #        'sample': ['package_data.dat'],
             },
