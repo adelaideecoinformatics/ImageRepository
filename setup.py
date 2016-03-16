@@ -62,7 +62,7 @@ setup(
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
-    packages=[] # find_packages('src', include=['doc'], exclude=['test']),
+    packages=[], # find_packages('src', include=['doc'], exclude=['test']),
 
     package_dir = {'image_repo':'src'},
     
