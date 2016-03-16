@@ -62,9 +62,9 @@ setup(
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
-    packages=[], # find_packages('src', include=['doc'], exclude=['test']),
+    packages=['Configuration', 'Caches', 'ImageNames', 'ImageType', 'Restful', 'Stores', 'Exceptions'], # find_packages('src', include=['doc'], exclude=['test']),
 
-    package_dir = {'image_repo':'src'},
+    package_dir = {'':'src'},
     
     # Alternatively, if you want to distribute just a my_module.py, uncomment
     # this:
