@@ -64,7 +64,7 @@ setup(
     # simple. Or you can use find_packages().
     packages=find_packages('src', exclude=['test']),
 
-    package_dir = {'':'src'},
+    package_dir = {'image_repo':'src'},
     
     # Alternatively, if you want to distribute just a my_module.py, uncomment
     # this:
