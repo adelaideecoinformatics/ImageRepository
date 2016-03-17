@@ -35,7 +35,7 @@ args = None
 logger = None
 error = None
 config = None
-    
+repo = None
 
 class BaseConfig(yaml.YAMLObject):
     """Base class to encapsulate configuration capability.
@@ -117,25 +117,56 @@ class BaseConfig(yaml.YAMLObject):
         self._assign_config(self, configuration)
              
     def __str__(self):
-        from yaml import dump as dump
-        return string.join(dump(self, indent = 4, default_flow_style = False, width = 1200).split("\\n"), "\n")
+#        from yaml import dump as dump
+        
+#        return string.join(dump(self, indent = 4, default_flow_style = False, width = 1200).split("\\n"), "\n") + '\n'
+
+        return self.yaml_str(self, 1)
+        
+    @classmethod
+    def yaml_str(cls, data, level):
+        indent = level * 4
+        #        the_string = "{:>{}s}{}\n".format('', indent, data.__dict__['yaml_tag'])
+        the_string = ""
+        for entry in data.__dict__.iterkeys():
+            if not entry.startswith('_'):
+                       
+                if isinstance(data.__dict__[entry], BaseConfig):
+                    the_string += "{:>{}s}{}: {}\n".format('', indent, entry, 
+                                                           "  #    " + str(cls.__dict__[entry] if entry in cls.__dict__ else ""))
+                    the_string += data.yaml_str(data.__dict__[entry], level + 1)
+
+                else:
+                    the_string += "{:>{}s}{}: {}{}\n".format('', indent, entry, 
+                                                           str(data.__dict__[entry]),
+                                                           "     # {}".format(cls.__dict__[entry]) if entry in cls.__dict__ else "")     
                     
+        return the_string
+        
 
     @classmethod
     def to_yaml(cls, dumper, data):
         """Dump a yaml representation of the configuration object and its current values.
         """
-        return yaml.SequenceNode(tag=u'tag:yaml.org,2002:seq', value=[
-            yaml.ScalarNode(tag = 'tag:yaml.org,2002:str', value = u"{} : {}".format(entry, str(data.__dict__[entry]))) if entry[:1] != "_" else None for entry in data.__dict__.iterkeys()
-        ])
+        #        return yaml.SequenceNode(tag=u'tag:yaml.org,2002:seq', value=[
+        #            yaml.ScalarNode(tag = 'tag:yaml.org,2002:str', value = u"{} : {}".format(entry, str(data.__dict__[entry])))
+        #            if not entry.startswith("_") else None for entry in data.__dict__.iterkeys()
+        #        ])
 
-
-
-        return yaml.MappingNode(tag=u'tag:yaml.org,2002:seq', value=[
-            (yaml.ScalarNode(tag = 'tag:yaml.org,2002:str', value = entry), yaml.ScalarNode(tag= 'tag:yaml.org,2002:str',
-                                                                                            value = str(data.__dict__[entry]) + "  # " + str(data.__dict__[entry])))
-            if entry[:1] != "_" else None for entry in data.__dict__.iterkeys()
-        ])
+        values = []
+        for entry in data.__dict__.iterkeys():
+            if not entry.startswith('_'):
+                values.append( (yaml.ScalarNode(tag = 'tag:yaml.org,2002:str', value = entry),
+                                 yaml.ScalarNode(tag= 'tag:yaml.org,2002:str', value = str(data.__dict__[entry]) +
+                                                 "  #    " + str(cls.__dict__[entry] if entry in cls.__dict__ else "")))
+                )
+        return yaml.MappingNode(tag=u'tag:yaml.org,2002:seq', value=values)
+                
+#        return yaml.MappingNode(tag=u'tag:yaml.org,2002:seq', value=[
+#            (yaml.ScalarNode(tag = 'tag:yaml.org,2002:str', value = entry), yaml.ScalarNode(tag= 'tag:yaml.org,2002:str',
+#                                                                                            value = str(data.__dict__[entry]) + "  # " + str(data.__dict__[entry])))
+#            if not entry.startswith("_") else None for entry in data.__dict__.iterkeys()
+#        ])
 
     
 class CacheConfig(BaseConfig):
@@ -147,10 +178,11 @@ class CacheConfig(BaseConfig):
     evict_free_threshold = "Percentage of store allocation used to begin eviction"
     evict_hysterysis = "Percentage of store allocation used less than evict threshold to allow ending eviction"
     priority = "Which object to favour for retention: one of newest, largest, smallest, thumbnail"
-    writeback = "Writeback strategy one of eager, lazy, never"
+    eager_writeback = "Writeback strategy one of eager, lazy, never"
     alarm_free_threshold = "Proportion of store allocation free to signal alarm"
     max_size = "Maximum size of store (in GB), 0 = unlimited"
     max_elements = "Maximum number of elements to store. 0 = unlimited"
+    next_level = "Next cache down in the heirarchy"
     
     def __init__(self, config):
         super(CacheConfig, self).__init__(config)
@@ -172,7 +204,8 @@ class CredentialsConfig(BaseConfig):
     yaml_tag = u"!Nectre_Credentials"
     username = ""
     authurl = ""
-    tennant = ""
+    tenant = ""
+    tenant_id = ""
     password = ""
 
     def __init__(self, config):
@@ -185,11 +218,11 @@ class CredentialsConfig(BaseConfig):
         
         self._assign_config(self, config)
         
-        self.the_password = self._find_param(self.password)
-        self.the_username = self._find_param(self.username)
-        self.the_authurl = self._find_param(self.authurl)
-        self.the_tenant_name = self._find_param(self.tenant)
-        self.the_tenant_id = self._find_param(self.tenant_id)
+        self._the_password = self._find_param(self.password)
+        self._the_username = self._find_param(self.username)
+        self._the_authurl = self._find_param(self.authurl)
+        self._the_tenant_name = self._find_param(self.tenant)
+        self._the_tenant_id = self._find_param(self.tenant_id)
 
     def clear_password(self):
         self.password = ""
@@ -215,6 +248,8 @@ class CredentialsConfig(BaseConfig):
         The value here is the value to use.
 
         """
+        if param[1] is None:
+            return None
         if param[0] == "env":
             try:
                 return os.environ[param[1]]
@@ -241,6 +276,9 @@ class SwiftStoreConfig(CacheConfig):
     server = "Swift store server URL: string"
     use_file_cache = "When downloading from the server, place downloaded files into the file cache: Boolean"
     download_path = "Path to use for downloaded files if not using the file cache: string"
+    initialise_store = "Whether to create a new, empty, store : Boolean"
+    max_size = "Maximum size in bytes to allow to be held : integer"
+    max_elements = "Maximum number of images to allow to be held : integer"
     
     def __init__(self, config):
         super(SwiftStoreConfig, self).__init__(config)
@@ -279,7 +317,7 @@ class LocalFileCacheConfig(CacheConfig):
 class SwiftCacheConfig(CacheConfig):
     """Configuration of a Swift store used to hold cached ephemeral objects
     """
-    
+    yaml_tag = u'!Swift_Cache_Configuration'
     def __init__(self, config):
         super(SwiftCacheConfig, self).__init__(config)
         self.container = "test_image_repo_cache"
@@ -336,21 +374,31 @@ class Configuration(BaseConfig):
 
     create_new = "Create a new repository with this configuration"
     owner = "Identity of the owner of the repository"
-    db_versions_to_keep = "Number of recoverable versions of the description database to preserve"
+    pid_file = "Path of the file in which the PID of a running server will be stored"
     local_file_cache_path = "Path to local filesystem where image files will be cached"
-    local_cache_configuration = "If we use a local file system to cache some images, base and derived"
-    swift_cache_configuration = "If we cache some derived images to avoid regeneration"
-    persisent_store = "Config of persistent object store for images"
-    database_persistence = "Configure mechanism for database persistence"
+    memory_cache_configuration = "In memory cache configuration"
+    local_cache_configuration = "Local file system cache for images, base and derived"
+    swift_cache_configuration = "Swift cache of derived images - used to avoid regeneration"
+    persisent_store_configuration = "Config of persistent object store for images"
     max_size = "Maximum allocation of image store"
     max_images = "Maximum number of images to store"
     alarm_threshold = "Threshold to alarm image repository use"
+
+    thumbnail_default_format = "Defualt image format to generate thumbnails in"
+    thumbnail_default_size = ""
+    thumbnail_equalise = ""
+    thumbnail_liquid_resize = ""
+    thumbnail_sharpen = ""
+    thumbnail_liquid_cutin_ratio = ""
+    
+    use_cannonical_format = ""
+    cannonical_format = ""
     
     def __init__(self, config_file):
         self.create_new = False
         self.owner = None
-        self.db_versions_to_keep = 3
         self.local_file_cache_path = "/var/tmp/image_repo"
+        self.pid_file = "/var/tmp/image_repo_pid"
         self.memory_cache_configuration = CacheConfig(None)    # If we use a slab of memory to cache some images, base and derived
         self.local_cache_configuration = LocalFileCacheConfig(None)    # If we use a local file system to cache some images, base and derived
         self.swift_cache_configuration = SwiftCacheConfig(None)    # If we cache some derived images to avoid regeneration
@@ -365,8 +413,6 @@ class Configuration(BaseConfig):
         self.thumbnail_liquid_resize = True
         self.thumbnail_sharpen = True
         self.thumbnail_liquid_cutin_ratio = 5.0
-
- 
         
         self.use_cannonical_format = False
         self.cannonical_format = "miff"
@@ -377,20 +423,12 @@ class Configuration(BaseConfig):
         self._assign_config(self, config)
 
 
-
-        
-
-
-
-
-# TODO - move the exceptions into this class and consolidate management
-
 class Errors:
     """Program wide error manager.
 
     Provides a simple class to encapsulate a limit on the number of run-time recoverable errors, to log errors
     as needed, and to manage the translation of internal errors to a form suitable for delivery to the client
-    as 4xx errors via the RestFull interface.
+    as 4xx errors via the RestFull interface.  Still much to do.
     """
     def __init__(self, limit, exception = RepositoryError):
         self._count = 0
@@ -433,22 +471,23 @@ class SignalHandler:
     
     def __init__(self):
         self._logger = logging.getLogger("image_repository")
-        signal.signal(signal.SIGHUP, self.signal_exit_handler)    # Provide for a kill notification to go into the log file
-        signal.signal(signal.SIGTERM, self.signal_term_handler)   # Provide for a sigterm to restart server
+        signal.signal(signal.SIGHUP, self.signal_hup_handler)     # Provide for a sighup to restart server
+        signal.signal(signal.SIGTERM, self.signal_exit_handler)   # Provide for a kill notification to go into the log file then exit
 
     @staticmethod
     def signal_exit_handler(signum, frame):
-        """Provides a mechanism to log via the logger if the program is terminated via an external signal (ie a kill command).
+        """Provides a mechanism to log via the logger if the program is terminated via an external signal (a kill -TERM command).
         """
         SignalHandler._logger.info("Exiting with signal {}".format(signum))
-        # Shutdown()
+        repo.shutdown()
         # Exit
-        sys.exit(0)
+        sys.exit(os.EX_OK)
 
     @staticmethod
-    def signal_term_handler(signum, frame):
-        """Provides a mechanism to field a sigterm
+    def signal_hup_handler(signum, frame):
+        """Provides a mechanism to field a sighup
         """
+        # We should be able to get Werkzeug to restart us                
         SignalHandler._logger.info("SIGTERM received. Reinitialise not supported.")
 
 
@@ -464,8 +503,6 @@ class ImageRepository:
         self._config = None
         self._cache_master = None
 
-
-
     def argument_parser(self):
         """Create the argument parser object for command-line instantiation of the Image Repository
 
@@ -479,20 +516,22 @@ class ImageRepository:
         parser.add_argument('-V', '--debug',      action = 'store_true', help = 'Enable debugging level messages')
         parser.add_argument('-a', '--attached',   action = 'store_true', help = 'Stay attached to the terminal.  Useful debugging.')
         parser.add_argument('-q', '--quiet',      action = 'store_true', help = 'Only log critical messages, turns off warning and error logging - usually means no log output')
-        parser.add_argument('-l', '--log_file',                         help = 'Log file. If not specified output goes to standard output')
-        parser.add_argument('-c', '--config_log_file',                  help = 'Logging configuration file. Python logger format.')
-        parser.add_argument('-i', '--intolerant',  action = 'store_true',  help = 'Exit on error.')
+        parser.add_argument('-l', '--log_file',                          help = 'Log file. If not specified output goes to standard output')
+        parser.add_argument('-c', '--config_log_file',                   help = 'Logging configuration file. Python logger format.')
+        parser.add_argument('-i', '--intolerant', action = 'store_true', help = 'Exit on error.')
 
-        parser.add_argument('-y', '--yaml_config',        help = 'Path to YAML format configuration file. Contents override internal defaults on a per element basis.')
-        parser.add_argument('-Y', '--dump_yaml',    action = 'store_true', help = 'Dump full program configuration in YAML format to std_out. Useful start for writing a config file.')
-    
-    
+        control_group = parser.add_mutually_exclusive_group()        
+        control_group.add_argument('-R', '--restart',    action = 'store_true', help = 'Restart any existing server process')
+        control_group.add_argument('-S', '--stop',       action = 'store_true', help = 'Stop any existing server process')
+        control_group.add_argument('-B', '--background', action = 'store_true', help = 'Start a server process in the background')
+        
+        parser.add_argument('-y', '--yaml_config',                       help = 'Path to YAML format configuration file. Contents override internal defaults on a per element basis.')
+        parser.add_argument('-Y', '--dump_yaml',  action = 'store_true', help = 'Dump full program configuration in YAML format to std_out. Useful start for writing a config file.')
+        
         return parser
-
 
     def build_logger(self, args):
         """Create the logger instance for the Image Repository
-
 
         Simple logger configuration that allows logging to nothing, standard output, 
         a file, or allows use of a configuration file for more advanced
@@ -561,24 +600,33 @@ class ImageRepository:
         logging.captureWarnings(True)
         return logger
 
-        
+    
     def shutdown(self):
-        """Manage clean shutdown of the repository
+        """Manage clean shutdown of the repository"""
         
-        """
-        sys.exit(0)
+        try:
+            os.remove(self._config.pid_file)
+        except OSError:
+            self._logger.exception("Failure to remove PID file {}".format(self._config.pid_file))
+            sys.exit(1)
+        sys.exit(os.EX_OK)
 
         
     def fatal_shutdown(self):
-        """Manage shutdown in the face of fatal internal errors
+        """Manage shutdown in the face of fatal internal errors"""
         
-        """
-        sys.exit(1)
+        try:
+            os.remove(self._config.pid_file)
+        except OSError:
+            pass
+#            self._logger.exception("Failure to remove PID file {}".format(self._config.pid_file))
+        sys.exit(os.EX_OSERR)
 
     def cache_master(self):
         return self._cache_master
 
-
+    
+    # This is wrong
     def run(self, app, debug = False):
         global args, logger, error, config
         try:
@@ -586,15 +634,20 @@ class ImageRepository:
             self.shutdown()
         except KeyboardInterrupt:
             self._logger.info("Keyboard interrupt halts processing.")
-            sys.exit(0)
+            self.shutdown()
         except RepositoryError:
-            sys.exit(1)
+            self.fatal_shutdown()
             #    except Exception as ex:
             #        logger.exception("Unhandled exception, exiting.", exc_info = ex)
             #        sys.exit(1)
+        else:
+            exit(os.EX_OSERR)
+        sys.exit(os.EX_OK)
+
+    def repository_start(self):
+        # lazy load of image database
+        self._cache_master = Caches.startup(config)
         
-            sys.exit(0)
-            
     def repository_server(self):
         """Top level instantiation of the Image Repository
         
@@ -605,18 +658,34 @@ class ImageRepository:
         It will also field exit of the server, for both normal and abnormal exit conditions.    
         """
     
-        global args, logger, error, config
+        global args, logger, error, config, repo
 
         try:
             parser = self.argument_parser()
             args = parser.parse_args()
             self._logger = self.build_logger(args)
-            
+            logger = self._logger
+            repo = self # Yuk
             
             config = Configuration(args.yaml_config)
+            self._config = config  # TODO - fix these references
             if args.dump_yaml:
                 print config
 
+            if args.background:
+                # We are going to run the server as a sub-process
+                # Check that the server can run OK
+                # fork it
+                try:
+                    server_pid = os.fork()
+                except OSError:
+                    self._logger.exception("Fork of server process failed")
+                    exit(os.EX_OSERR)
+                if server_pid != 0:
+                    self._logger.info("Child process is {}".format(server_pid))
+                    exit(os.EX_OK)
+
+                
             ImageNames.ImageName.set_configuration(config)
             ImageType.ImageHandle.set_configuration(config)
             ImageType.ImageInstance.set_configuration(config)
@@ -626,25 +695,43 @@ class ImageRepository:
             signals = SignalHandler()
     
             if args.trial_run:
-                self._logger.info("Trial run. Checking configuration")
-                exit(0)
+                self._logger.info("Trial run. Only checking configuration")
+                exit(ex.EX_OK)
 
+
+            if args.restart or args.stop:
+                # Find the running server and signal it to restart or stop
+                try:
+                    with open(config.pid_file, 'r') as the_file:
+                        server_pid = int(the_file.read())
+                except IOError:
+                    self._logger.exception("Failure to read server PID from {}. Server may not be running".format(config.pid_file))
+                    exit(os.EX_OSFILE)
+                try:
+                    if args.restart:
+                        # We should be able to use the Werkzeug reloader, but there doesn't seem to be any easy interface
+                        os.kill(server_pid, signal.SIGHUP)
+                    if args.stop:
+                        os.kill(server_pid, signal.SIGTERM)
+                except:
+                    self._logger.exception("Failure in sending signal to server process {}. Server may not be running".format(server_pid))
+                    exit(os.EX_OSERR)
+                exit(os.EX_OK)
+                                                           
             if not args.test_run:
-                # connect to server
-                # load database
-                # start running server
                 self._logger.info("Image repository server starts.")
                 self._logger.info("PID: {}".format(os.getpid()))
-                self._cache_master = Caches.startup(config)
+                try:
+                    with open(config.pid_file, 'w') as the_file:
+                        the_file.write(str(os.getpid()))
+                except IOError:
+                    self._logger.exception("Failure to write PID to {}".format(config.pid_file))                  
             else:
-                # Look for existing local database
-                # Look for existing local store
-                # Create either if not present
-                # Run server in test mode
-                self._logger.info("Image repository server starts in test mode.")
+                self._logger.info("Image repository server starts in cache self test mode.")
                 self._logger.info("PID: {}".format(os.getpid()))
-
+                # We can add any useful self test code here.
                 Caches.stress_test(config)
+                exit(0)
 
             return
             
@@ -664,14 +751,14 @@ class ImageRepository:
         
         except KeyboardInterrupt:
             self._logger.info("Keyboard interrupt halts processing.")
-            sys.exit(0)
+            self.shutdown()
         except RepositoryError:
-            sys.exit(1)
+            self.fatal_shutdown()
             #    except Exception as ex:
             #        logger.exception("Unhandled exception, exiting.", exc_info = ex)
             #        sys.exit(1)
         
-            sys.exit(0)
+        sys.exit(0)
 
 def main():
     repo = ImageRepository()

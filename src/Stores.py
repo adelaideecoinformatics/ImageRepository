@@ -88,10 +88,10 @@ class SwiftImageStore(ImageStore):
     
         try:
             options = {}
-            options["os_username"] = self._credentials.the_username
-            options["os_authurl"] = self._credentials.the_authurl
-            options["os_tenant_name"] = self._credentials.the_tenant_name
-            options["os_key"] = self._credentials.the_password
+            options["os_username"] = self._credentials._the_username
+            options["os_authurl"] = self._credentials._the_authurl
+            options["os_tenant_name"] = self._credentials._the_tenant_name
+            options["os_key"] = self._credentials._the_password
             
             self._swift = swiftclient.service.SwiftService(options)
 

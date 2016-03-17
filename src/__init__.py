@@ -1,5 +1,6 @@
-import Configuration
+from flask import Flask
+from Restful import startup
 
 def main():
-    repo = Configuration.ImageRepository()
-    repo.repository_server()
+    app = Flask(__name__)
+    startup(app)

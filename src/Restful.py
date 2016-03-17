@@ -32,10 +32,10 @@ import Stores
 from Exceptions import RepositoryError, RepositoryFailure
 
 
-app = Flask(__name__)
-api = Api(app)
+#app = Flask(__name__)
 
 master = None
+repo = None
 
 # TODO - make this list complete - use Wand's definitions
 valid_image_formats = ["jpg","tif","png", "bmp","bpg"]
@@ -274,20 +274,24 @@ class ImageList(Resource):
         Not allowing this currently. 
         """
         return "Operation not supported. Upload files relative to images/  ", 405        
+
+
+def prestart():
+    global master, repo
+    repo.repository_start()
+    master = repo.cache_master()
         
-    
-def startup():
-    global master
-    
+def startup(app):
+    global master, repo
+    api = Api(app)
     api.add_resource(ImageList, '/images', methods = ['GET'])
     api.add_resource(Image, '/images/<path:image_name>', methods = ['GET', 'POST', 'DELETE'])
     api.add_resource(Image1, '/images/', methods = ['GET'])
-
-
     repo = Configuration.ImageRepository()
-    repo.repository_server()
-    master = repo.cache_master()
-    repo.run(app, debug=True)
+    repo.repository_server()    
+    app.before_first_request(prestart)
+    app.run(debug=True)
     
 if __name__ == '__main__':
-    startup()
+    app = Flask('image_repo')
+    startup(app)
