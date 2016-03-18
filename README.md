@@ -26,8 +26,8 @@ To use the repository in its most simple form a very basic configuration is all 
 All the configuration can be specified in a YAML format configuration file. All configuration has defaults,
 and the server will run with no additional configuration except for credentials for the Swift store.
 
-A full configuration file can be created by running the server with the `-Yt` options. This will output a
-configuration file that contains all of the possible options with their default values. 
+A full configuration file can be created by running the server as `image_repo -Yt`. This will output a
+configuration file that contains all of the possible options with their default values and then exit. 
 
 It is assumed that a local file cache will be used, by default `/var/tmp/image_server` is used.
 
@@ -38,7 +38,7 @@ By default these containers are `test_image_repo` and `test_image_repo_cache`.
 
 If temporary ULRs are to be created a key must be set on the image cache Swift container.  This is a pain to set, as the
 Web interface does not provide a mechanism to set it.  The Swift command package must be used. (Installing this on a Mac
-is further fraught due to conflicts with various partds of the defualt Python and with the language swift.  Use of a
+is further fraught due to conflicts with various partds of the default Python and with the language swift.  Use of a
 `virtualenv` is essentially mandatory to have any hope of it working.)  The key set on the container is set in the
 configuration file with the `url_key` option.  By default it is `123456789`, which is hardly secure.  When temporay ULRs
 are created there is no actual interaction with the Swift store (unless a new derived image must be created and stored).
@@ -62,7 +62,7 @@ Under `/images/` are the images.  Image paths are expected to be unique. No effo
 If a new image with the same path as an existing one is uploaded, the results are not defined.
 
 Extention components (eg `.jpg` or `.png`) of the image names are not considered as part of the name. Images are considered to be abstract entities that
-can be made real in any desired format or size. By default all images are served in `jpeg` format, no matter what format they are uploaded in. Any
+can be made real in any desired format or size. By default, all images are served in `jpeg` format, no matter what format they are uploaded in. Any
 request for an image may request a different format.
 
 Requests for an image may also include a size, which is taken to be a bounding box into which the image must fit. A specific form of resized image
@@ -74,7 +74,7 @@ images will be returned as a zip archive. Request for metadata will be returned 
 
 The accepted requests are as follows:
 
-* `url=True`   Return a temporary URL form which the image my be retrieved.
+* `url=True`   Return a temporary URL from which the image my be retrieved.
 * `xsize=<x>`    Rescale the image to fit within a width of at most x pixels.
 * `ysize=<y>`    Rescale the image to fit within a height of at most y pixels.
 * `thumbnail=True`  Return a thumbnail of the image. May be used with `xsize` and `ysize` to control the size of the thumbnail
