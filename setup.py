@@ -105,7 +105,7 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': [
-            'image_repo = image_repo.Restful:startup',
+            'image_repo = image_repo.Restful:main',
         ],
     },
 )

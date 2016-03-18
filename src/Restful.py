@@ -287,7 +287,11 @@ def startup(app):
     repo.repository_server()    
     app.before_first_request(prestart)
     app.run(debug=True)
-    
-if __name__ == '__main__':
+
+
+def main():
     app = Flask('image_repo')
     startup(app)
+    
+if __name__ == '__main__':
+    main()
