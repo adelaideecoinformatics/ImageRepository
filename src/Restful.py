@@ -94,7 +94,7 @@ class Image(Resource):
         # In principle we could have both an image_name and a regex.
         # Currently the regex takes precedence.  TODO - We could contrive a
         # a reasonable way of combining the two - at least for some values.
-        regexp = args['regexp']
+        regexp = args['regex']
         try:
             if regexp is not None:
                 if image_name is not None and image_name[-1] != '/':
@@ -146,11 +146,7 @@ class Image(Resource):
                     for the_name in new_names:
                         the_name.apply_resize((x_size, y_size), kind = args['kind'])
 
-            print "here"
-                        
             new_images = [ master.get_as_defined(the_name) for the_name in new_names ]
-
-            print "now {}".format(new_images[0])
             
             # If a URL is requested we generate that and return it
             if args['url']:
@@ -260,7 +256,7 @@ class ImageList(Resource):
         traversal of sub-directories, and for some other useful searches
         """
         args, errors = ListSchema().load(request.args)
-        regexp = args['regexp']
+        regexp = args['regex']
         #  Some sanity checking on the regexp here?
         try:
             return master.list_base_images(regexp)

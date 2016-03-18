@@ -586,8 +586,7 @@ class ImageRepository:
         logger.addHandler(handler)
         logging._srcfile = None
 
-        #    logging_level = logging.WARNING
-        logging_level = logging.DEBUG
+        logging_level = logging.WARNING
         if args is not None:
             if args.quiet:
                 logging_level = logging.CRITICAL
@@ -605,6 +604,20 @@ class ImageRepository:
     
     def shutdown(self):
         """Manage clean shutdown of the repository"""
+
+
+        # Ensure that all the persistent entities are safe
+        
+        try:
+            os.remove(self._config.pid_file)
+        except OSError:
+            self._logger.exception("Failure to remove PID file {}".format(self._config.pid_file))
+            sys.exit(os.EX_OSERR)
+        sys.exit(os.EX_OK)
+
+
+    def forced_shutdown(self):
+        """Manage a forced shutdown of the repository"""
         
         try:
             os.remove(self._config.pid_file)
@@ -612,7 +625,6 @@ class ImageRepository:
             self._logger.exception("Failure to remove PID file {}".format(self._config.pid_file))
             sys.exit(1)
         sys.exit(os.EX_OK)
-
         
     def fatal_shutdown(self):
         """Manage shutdown in the face of fatal internal errors"""
@@ -676,7 +688,6 @@ class ImageRepository:
 
             if args.background:
                 # We are going to run the server as a sub-process
-                # Check that the server can run OK
                 # fork it
                 try:
                     server_pid = os.fork()
@@ -686,12 +697,10 @@ class ImageRepository:
                 if server_pid != 0:
                     self._logger.info("Child process is {}".format(server_pid))
                     exit(os.EX_OK)
-
                 
             ImageNames.ImageName.set_configuration(config)
             ImageType.ImageHandle.set_configuration(config)
             ImageType.ImageInstance.set_configuration(config)
-
             
             error = Errors(0 if args.intolerant else 20, RepositoryError)
             signals = SignalHandler()
@@ -699,7 +708,6 @@ class ImageRepository:
             if args.trial_run:
                 self._logger.info("Trial run. Only checking configuration")
                 exit(os.EX_OK)
-
 
             if args.restart or args.stop:
                 # Find the running server and signal it to restart or stop
@@ -712,6 +720,7 @@ class ImageRepository:
                 try:
                     if args.restart:
                         # We should be able to use the Werkzeug reloader, but there doesn't seem to be any easy interface
+                        # OTOH, the reloader should obviate any need to use a SIGHUP when the config changes.
                         os.kill(server_pid, signal.SIGHUP)
                     if args.stop:
                         os.kill(server_pid, signal.SIGTERM)
@@ -733,34 +742,19 @@ class ImageRepository:
                 self._logger.info("PID: {}".format(os.getpid()))
                 # We can add any useful self test code here.
                 Caches.stress_test(config)
-                exit(0)
+                exit(os.EX_OK)
 
             return
-            
-            """
-            store_name = config.persistent_store.server
-            credentials = config.persistent_store.credentials
-            
-            swift = Stores.SwiftImageStore( store_name, credentials)
-            
-            print swift
-            print swift.stats()
-            """
 
-        
-            # self.shutdown()
-
-        
         except KeyboardInterrupt:
             self._logger.info("Keyboard interrupt halts processing.")
-            self.shutdown()
+            self.forced_shutdown()
         except RepositoryError:
             self.fatal_shutdown()
-            #    except Exception as ex:
-            #        logger.exception("Unhandled exception, exiting.", exc_info = ex)
-            #        sys.exit(1)
-        
-        sys.exit(0)
+        except Exception as ex:
+            logger.exception("Unhandled exception, exiting.", exc_info = ex)
+            sys.exit(os.EX_OSERR)
+        sys.exit(os.EX_OK)
 
 def main():
     repo = ImageRepository()
