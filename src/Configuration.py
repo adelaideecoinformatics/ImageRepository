@@ -121,25 +121,26 @@ class BaseConfig(yaml.YAMLObject):
         
 #        return string.join(dump(self, indent = 4, default_flow_style = False, width = 1200).split("\\n"), "\n") + '\n'
 
-        return self.yaml_str(self, 1)
+        return self.yaml_str(self, 0)
         
     @classmethod
     def yaml_str(cls, data, level):
         indent = level * 4
         #        the_string = "{:>{}s}{}\n".format('', indent, data.__dict__['yaml_tag'])
         the_string = ""
-        for entry in data.__dict__.iterkeys():
+        entries = sorted(data.__dict__.keys())
+        for entry in entries:
             if not entry.startswith('_'):
                        
                 if isinstance(data.__dict__[entry], BaseConfig):
                     the_string += "{:>{}s}{}: {}\n".format('', indent, entry, 
-                                                           "  #    " + str(cls.__dict__[entry] if entry in cls.__dict__ else ""))
-                    the_string += data.yaml_str(data.__dict__[entry], level + 1)
+                                                           "       #    {}".format(cls.__dict__[entry]) if entry in cls.__dict__ else "")
+                    the_string += data.__dict__[entry].yaml_str(data.__dict__[entry], level + 1)
 
                 else:
                     the_string += "{:>{}s}{}: {}{}\n".format('', indent, entry, 
                                                            str(data.__dict__[entry]),
-                                                           "     # {}".format(cls.__dict__[entry]) if entry in cls.__dict__ else "")     
+                                                           "       #   {}".format(cls.__dict__[entry]) if entry in cls.__dict__ else "")     
                     
         return the_string
         
@@ -202,11 +203,11 @@ class CredentialsConfig(BaseConfig):
     """
     
     yaml_tag = u"!Nectre_Credentials"
-    username = ""
-    authurl = ""
-    tenant = ""
-    tenant_id = ""
-    password = ""
+    username = "Owner user of the swift storage"
+    authurl = "URL of the authentication server"
+    tenant = "Project name or similar"
+    tenant_id = "Id string for the project"
+    password = "Swift access password"
 
     def __init__(self, config):
         super(CredentialsConfig, self).__init__(config)
@@ -279,6 +280,10 @@ class SwiftStoreConfig(CacheConfig):
     initialise_store = "Whether to create a new, empty, store : Boolean"
     max_size = "Maximum size in bytes to allow to be held : integer"
     max_elements = "Maximum number of images to allow to be held : integer"
+
+    url_lifetime = "How long a temporary URL will last for"
+    url_lifetime_slack = "Max additional time a URL will be allowed to last. Use to avoid constant recreation of derived images"
+    url_lifetime_key = "Swift store encryption key used to sign temporary URLs"
     
     def __init__(self, config):
         super(SwiftStoreConfig, self).__init__(config)
@@ -318,6 +323,20 @@ class SwiftCacheConfig(CacheConfig):
     """Configuration of a Swift store used to hold cached ephemeral objects
     """
     yaml_tag = u'!Swift_Cache_Configuration'
+    credentials = "Credentials needed to access Swift store: CredentialsConfig"
+    container = "Name of Container for objects: string"
+    server_url = "Swift store server URL: string"
+    use_file_cache = "When downloading from the server, place downloaded files into the file cache: Boolean"
+    download_path = "Path to use for downloaded files if not using the file cache: string"
+    initialise_store = "Whether to create a new, empty, store : Boolean"
+    max_size = "Maximum size in bytes to allow to be held : integer"
+    max_elements = "Maximum number of images to allow to be held : integer"
+
+    url_lifetime = "How long a temporary URL will last for"
+    url_lifetime_slack = "Max additional time a URL will be allowed to last. Use to avoid constant recreation of derived images"
+    url_key = "Swift store encryption key used to sign temporary URLs"
+#    url_method = ""
+    
     def __init__(self, config):
         super(SwiftCacheConfig, self).__init__(config)
         self.container = "test_image_repo_cache"
@@ -341,28 +360,11 @@ class SwiftCacheConfig(CacheConfig):
         
 class PersistentStoreConfig(BaseConfig):
     """Configuration of the store system used to provide long-term resilient storage of preserved objects
-    """
-    
+    """    
     yaml_tag = u'!Persistent_Storage_Configuration'
     def __init__(self, config):
         super(PersistentStoreConfig, self).__init__(config)
         self.agent = SwiftStoreConfig(None)
-        self._assign_config(self, config)
-
-        
-class WalEConfig(BaseConfig):
-    """Configuration of the Well-E SQL database snapshot mechanism
-    """
-    
-    yaml_tag = u'!Wall-E_configuration'
-    use_image_repo = "Use the image repository to hold database snapshots"
-    pool_size = "Pool size"
-    gpg_key_id = "If set, encryption with this key will be used for the database snapshots"
-    
-    def __init__(self, config):
-        self.use_image_repo = True
-        self.pool_size = 8
-        self.gpg_key_id = None
         self._assign_config(self, config)
 
         
@@ -384,15 +386,15 @@ class Configuration(BaseConfig):
     max_images = "Maximum number of images to store"
     alarm_threshold = "Threshold to alarm image repository use"
 
-    thumbnail_default_format = "Defualt image format to generate thumbnails in"
-    thumbnail_default_size = ""
-    thumbnail_equalise = ""
-    thumbnail_liquid_resize = ""
-    thumbnail_sharpen = ""
-    thumbnail_liquid_cutin_ratio = ""
+    thumbnail_default_format = "Default image format to generate thumbnails in"
+    thumbnail_default_size = "Default size for thumbnails"
+    thumbnail_equalise = "Whether to apply histogram equalisation to thumbnails"
+    thumbnail_liquid_resize = "Whether to allow distortion of the thumbnail aspect ratio for very long or very wide images"
+    thumbnail_sharpen = "Whether to apply a sharpen operation to thumbnails"
+    thumbnail_liquid_cutin_ratio = "If applying a distorted resize, what cutin ratio to use for a liquid rescale"
     
-    use_cannonical_format = ""
-    cannonical_format = ""
+    cannonical_format_used = "Whether to convert images to a standard intermediate format"
+    cannonical_format = "If converting to a connonical format, what format to use"
     
     def __init__(self, config_file):
         self.create_new = False
@@ -414,7 +416,7 @@ class Configuration(BaseConfig):
         self.thumbnail_sharpen = True
         self.thumbnail_liquid_cutin_ratio = 5.0
         
-        self.use_cannonical_format = False
+        self.cannonical_format_used = False
         self.cannonical_format = "miff"
         
         config = None
@@ -696,7 +698,7 @@ class ImageRepository:
     
             if args.trial_run:
                 self._logger.info("Trial run. Only checking configuration")
-                exit(ex.EX_OK)
+                exit(os.EX_OK)
 
 
             if args.restart or args.stop:

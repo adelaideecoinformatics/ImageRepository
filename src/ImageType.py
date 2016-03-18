@@ -1205,7 +1205,7 @@ class OriginalImage(ImageInstance):
         """
         if self._base_image is None:
             self.get_image_handle()._get_image()
-            if self._configuration.use_cannonical_format:
+            if self._configuration.cannonical_format_used:
                 handle = self._image_handle.convert(self._configuration.cannonical_format)
                 handle.strip()                     # We do not let metadata leak into derived images.
             else:
