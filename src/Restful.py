@@ -49,7 +49,7 @@ class ImageSchema(Schema):
     thumbnail = fields.Boolean(missing = False)
     url = fields.Boolean(missing = False)
     meta = fields.Boolean(missing = False)
-    regexp = fields.Str(missing = None)
+    regex = fields.Str(missing = None)
 
     @pre_load
     def process_image(self, data):
@@ -242,7 +242,7 @@ class Image1(Image):
         
         
 class ListSchema(Schema):
-    regexp = fields.Str(missing = None)
+    regex = fields.Str(missing = None)
     
 class ImageList(Resource):
     """Interface provides an endpoint at ``/images`` which allows listing and upload
