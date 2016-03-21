@@ -36,11 +36,11 @@ another that contains cached copies of derived images, and images that have been
 These can be the same container, separating them simply allows for easy management or different deployment options.
 By default these containers are `test_image_repo` and `test_image_repo_cache`. 
 
-If temporary ULRs are to be created a key must be set on the image cache Swift container.  This is a pain to set, as the
+If temporary URLs are to be created a key must be set on the image cache Swift container.  This is a pain to set, as the
 Web interface does not provide a mechanism to set it.  The Swift command package must be used. (Installing this on a Mac
 is further fraught due to conflicts with various partds of the defualt Python and with the language swift.  Use of a
 `virtualenv` is essentially mandatory to have any hope of it working.)  The key set on the container is set in the
-configuration file with the `url_key` option.  By default it is `123456789`, which is hardly secure.  When temporay ULRs
+configuration file with the `url_key` option.  By default it is `123456789`, which is hardly secure.  When temporay URLs
 are created there is no actual interaction with the Swift store (unless a new derived image must be created and stored).
 The URL contains a signed request that the store uses its key to verify.
 
@@ -67,9 +67,9 @@ request for an image may request a different format.
 
 Requests for an image may also include a size, which is taken to be a bounding box into which the image must fit. A specific form of resized image
 is the thumbnail, which is generated as a distinct entity.  By default thumbnails fit into a 50x50 pixel box. They may also have image enhancement
-operations performed to improve their clarity when viewd at such small resolutions.
+operations performed to improve their clarity when viewed at such small resolutions.
 
-Unless a temporary ULR is requested for an image, the image requested will be returned in the response.  A single image will come as raw data. Multiple
+Unless a temporary URL is requested for an image, the image requested will be returned in the response.  A single image will come as raw data. Multiple
 images will be returned as a zip archive. Request for metadata will be returned in JSON format.
 
 The accepted requests are as follows:
@@ -85,6 +85,6 @@ Note: The regex is in Perl/Python syntax. This is not URL safe, and if the expre
 
 * A `GET` request on `/images` will provide a listing of all images in the repository. `regex` is supported on this request.
 * A `PUT` request on `/images/path/to/image` will upload an image with an image name as specified in the path.
-* A `GET` request om `/images/path/to/image` will return the designated image as modified by the appropriate modifiers.
+* A `GET` request on `/images/path/to/image` will return the designated image as modified by the appropriate modifiers.
 
 
