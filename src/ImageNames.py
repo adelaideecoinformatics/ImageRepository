@@ -429,6 +429,9 @@ class ImageName:
         self._is_base = False
         if size is None or (size[0] is None and size[1] is None):
             size = self._configuration.thumbnail_default_size
+            #            x_size = self._configuration.thumbnail_default_xsize
+            #            y_size = self._configuration.thumbnail_default_ysize
+            #        else:
         x_size = size[0]
         y_size = size[1]
             

@@ -139,8 +139,9 @@ class BaseConfig(yaml.YAMLObject):
                     the_string += data.__dict__[entry].yaml_str(data.__dict__[entry], level + 1)
                 else:
                     comment_str = cls.find_comment(entry, data)
-                    padding = max(5, comment_column - (len(entry) + len(str(data.__dict__[entry])) + 2))  # Try to make comments align
-                    the_string += "{:>{}s}{}: {}{:>{}}#  {}\n".format('', indent, entry, str(data.__dict__[entry]),'' , padding, comment_str)
+                    data_str = str(data.__dict__[entry] if not isinstance(data.__dict__[entry], str) else "'{}'".format(data.__dict__[entry]))
+                    padding = max(5, comment_column - (len(entry) + len(data_str) + 2))  # Try to make comments align
+                    the_string += "{:>{}s}{}: {}{:>{}}#  {}\n".format('', indent, entry, data_str,'' , padding, comment_str)
                     
         return the_string
         
@@ -371,7 +372,9 @@ class Configuration(BaseConfig):
     image_default_format = "Defualt format to deliver images in. (string)"
     
     thumbnail_default_format = "Default image format to generate thumbnails in (string)"
-    thumbnail_default_size = "Default size for thumbnails. tuple(integer,integer)"
+    thumbnail_default_size = "Default size for thumbnails [ int, int ]"
+    thumbnail_default_xsize = "Default x-size for thumbnails (integer)"
+    thumbnail_default_ysize = "Default y-size for thumbnails (integer)"
     thumbnail_equalise = "Whether to apply histogram equalisation to thumbnails (boolean)"
     thumbnail_liquid_resize = "Whether to allow distortion of the thumbnail aspect ratio for very long or very wide images (boolean)"
     thumbnail_sharpen = "Whether to apply a sharpen operation to thumbnails (boolean)"
@@ -394,7 +397,8 @@ class Configuration(BaseConfig):
         self.alarm_threshold = 0.8
 
         self.thumbnail_default_format = "jpg"
-        self.thumbnail_default_size = (50,50)
+        self.thumbnail_default_size = [50,50]
+#        self.thumbnail_default_ysize = 50
         self.thumbnail_equalise = True
         self.thumbnail_liquid_resize = True
         self.thumbnail_sharpen = True

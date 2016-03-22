@@ -675,9 +675,6 @@ class ImageInstance(object):
                     klass._image_instances[image_name.image_name] = new_image
         return new_image
 
-
-    
-    
     def __init__(self, image_name = None, image_handle = None, kind = None, size = None):
         """Construct an ImageInstance or derived class
 
