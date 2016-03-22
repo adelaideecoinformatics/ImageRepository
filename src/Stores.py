@@ -541,7 +541,7 @@ class SwiftImageStore(ImageStore):
             
         key = self._configuration.url_key
         method = self._configuration.url_method
-        path =  "/v1/AUTH_" + self._configuration.credentials.the_tenant_id + "/" + self._configuration.container + "/" + str(name)
+        path =  "/v1/AUTH_" + self._configuration.credentials._the_tenant_id + "/" + self._configuration.container + "/" + str(name)
         url = swiftclient.utils.generate_temp_url(path, lifetime, key, method, absolute=False)
         # need to record that the url has been generated so that the image isn't deleted during a cleanup
         # Something of a problem as we don't want to lose this information between server instances

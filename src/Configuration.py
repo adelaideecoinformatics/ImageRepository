@@ -125,26 +125,41 @@ class BaseConfig(yaml.YAMLObject):
         
     @classmethod
     def yaml_str(cls, data, level):
+        comment_column = 60
         indent = level * 4
-        #        the_string = "{:>{}s}{}\n".format('', indent, data.__dict__['yaml_tag'])
         the_string = ""
         entries = sorted(data.__dict__.keys())
         for entry in entries:
             if not entry.startswith('_'):
-                       
                 if isinstance(data.__dict__[entry], BaseConfig):
-                    the_string += "{:>{}s}{}: {}\n".format('', indent, entry, 
-                                                           "       #    {}".format(cls.__dict__[entry]) if entry in cls.__dict__ else "")
+                    comment_str = cls.find_comment(entry, data)
+                    padding = max(5, comment_column - (len(entry)) - 2)  # Try to make comments align
+                    # Break heirachical config up to ensure we have the top level comment at the start
+                    the_string += "{:>{}s}{}: {:>{}}#  {}\n".format('', indent, entry, '', padding, comment_str)
                     the_string += data.__dict__[entry].yaml_str(data.__dict__[entry], level + 1)
-
                 else:
-                    the_string += "{:>{}s}{}: {}{}\n".format('', indent, entry, 
-                                                           str(data.__dict__[entry]),
-                                                           "       #   {}".format(cls.__dict__[entry]) if entry in cls.__dict__ else "")     
+                    comment_str = cls.find_comment(entry, data)
+                    padding = max(5, comment_column - (len(entry) + len(str(data.__dict__[entry])) + 2))  # Try to make comments align
+                    the_string += "{:>{}s}{}: {}{:>{}}#  {}\n".format('', indent, entry, str(data.__dict__[entry]),'' , padding, comment_str)
                     
         return the_string
         
 
+    @classmethod
+    def find_comment(cls, entry, data):
+        if isinstance(cls, BaseConfig):
+            return ''
+        if entry in cls.__dict__:
+            return cls.__dict__[entry]
+        else:
+            for base in cls.__bases__:
+                try:
+                    return base.find_comment(entry, data)
+                except AttributeError:
+                    pass
+        return ''
+
+    
     @classmethod
     def to_yaml(cls, dumper, data):
         """Dump a yaml representation of the configuration object and its current values.
@@ -176,13 +191,13 @@ class CacheConfig(BaseConfig):
 
     
     yaml_tag = u'!Cache_Configuration'
-    evict_free_threshold = "Percentage of store allocation used to begin eviction"
-    evict_hysterysis = "Percentage of store allocation used less than evict threshold to allow ending eviction"
-    priority = "Which object to favour for retention: one of newest, largest, smallest, thumbnail"
-    eager_writeback = "Writeback strategy one of eager, lazy, never"
-    alarm_free_threshold = "Proportion of store allocation free to signal alarm"
-    max_size = "Maximum size of store (in GB), 0 = unlimited"
-    max_elements = "Maximum number of elements to store. 0 = unlimited"
+    evict_free_threshold = "Fraction of allocation used to begin eviction from cache (real in range (0.0:1.0)"
+    evict_hysterysis = "Fraction of store allocation used less than evict threshold to allow ending eviction (real in range (0.0:1.0)"
+    priority = "Which object to favour for retention: one of 'newest', 'largest', 'smallest', 'thumbnail'"
+    eager_writeback = "Writeback strategy, one of 'eager', 'lazy', 'never'"
+    alarm_free_threshold = "Proportion of store allocation free to signal alarm (real in range (0.0:1.0)"
+    max_size = "Maximum size of store (bytes), 0 = unlimited (integer)"
+    max_elements = "Maximum number of elements to store. 0 = unlimited (integer)"
     next_level = "Next cache down in the heirarchy"
     
     def __init__(self, config):
@@ -203,12 +218,12 @@ class CredentialsConfig(BaseConfig):
     """
     
     yaml_tag = u"!Nectre_Credentials"
-    username = "Owner user of the swift storage"
-    authurl = "URL of the authentication server"
-    tenant = "Project name or similar"
-    tenant_id = "Id string for the project"
-    password = "Swift access password"
-
+    username = "Owner user of the swift storage (key, value)"
+    authurl = "URL of the authentication server (key, value)"
+    tenant = "Project name or similar (key, value)"
+    tenant_id = "Id string for the project (key, value)"
+    password = "Swift access password (key, value)"
+    
     def __init__(self, config):
         super(CredentialsConfig, self).__init__(config)
         self.username = ("env", "OS_USERNAME")
@@ -272,18 +287,17 @@ class SwiftStoreConfig(CacheConfig):
     """
     
     yaml_tag = u'!Swift_Storage_Configuration'
-    credentials = "Credentials needed to access Swift store: CredentialsConfig"
-    container = "Name of Container for objects: string"
-    server = "Swift store server URL: string"
-    use_file_cache = "When downloading from the server, place downloaded files into the file cache: Boolean"
-    download_path = "Path to use for downloaded files if not using the file cache: string"
-    initialise_store = "Whether to create a new, empty, store : Boolean"
-    max_size = "Maximum size in bytes to allow to be held : integer"
-    max_elements = "Maximum number of images to allow to be held : integer"
+    credentials = "Credentials needed to access Swift store"
+    container = "Name of Container for objects (string)"
+    server_url = "Swift store server URL (string)"
+    use_file_cache = "When downloading from the server, place downloaded files into the file cache (boolean)"
+    download_path = "Path to use for downloaded files if not using the file cache (string)"
+    initialise_store = "Whether to create a new, empty, store (boolean)"
 
-    url_lifetime = "How long a temporary URL will last for"
-    url_lifetime_slack = "Max additional time a URL will be allowed to last. Use to avoid constant recreation of derived images"
-    url_lifetime_key = "Swift store encryption key used to sign temporary URLs"
+    url_lifetime = "How long a temporary URL will last for in seconds (integer)"
+    url_lifetime_slack = "Max additional time a URL will be allowed to last in seconds. Use to avoid constant recreation of derived images (integer)"
+    url_key = "Private key set for container to authenticate temporary ULRs (string)"
+    url_method = "Temporary URL access mechanism (usually GET)"
     
     def __init__(self, config):
         super(SwiftStoreConfig, self).__init__(config)
@@ -304,13 +318,13 @@ class SwiftStoreConfig(CacheConfig):
         self.url_lifetime_slack = 3600 * 24   # 1 day  - To avoid constant thrashing of requests to the object store we give anyhting up to this amount additional life to objects
         self.url_key = "123456789"
         self.url_method = "GET"
-        self.url_prefix = "/v1"
-        
         self._assign_config(self, config)
 
 class LocalFileCacheConfig(CacheConfig):
     """Configuration of local file storage.
     """
+    cache_path = "Path to directory where local files will cache images"
+    initialise = "Whether to create a new clean local file cache"
     
     def __init__(self, config):
         super(LocalFileCacheConfig, self).__init__(config)
@@ -319,44 +333,13 @@ class LocalFileCacheConfig(CacheConfig):
         self._assign_config(self, config)
 
 
-class SwiftCacheConfig(CacheConfig):
+class SwiftCacheConfig(SwiftStoreConfig):
     """Configuration of a Swift store used to hold cached ephemeral objects
     """
     yaml_tag = u'!Swift_Cache_Configuration'
-    credentials = "Credentials needed to access Swift store: CredentialsConfig"
-    container = "Name of Container for objects: string"
-    server_url = "Swift store server URL: string"
-    use_file_cache = "When downloading from the server, place downloaded files into the file cache: Boolean"
-    download_path = "Path to use for downloaded files if not using the file cache: string"
-    initialise_store = "Whether to create a new, empty, store : Boolean"
-    max_size = "Maximum size in bytes to allow to be held : integer"
-    max_elements = "Maximum number of images to allow to be held : integer"
-
-    url_lifetime = "How long a temporary URL will last for"
-    url_lifetime_slack = "Max additional time a URL will be allowed to last. Use to avoid constant recreation of derived images"
-    url_key = "Swift store encryption key used to sign temporary URLs"
-#    url_method = ""
     
     def __init__(self, config):
         super(SwiftCacheConfig, self).__init__(config)
-        self.container = "test_image_repo_cache"
-        self.credentials = CredentialsConfig(None)
-        self.server_url = "https://swift.rc.nectar.org.au:8888"
-        self.use_file_cache = True
-        self.download_path = None
-        self.initialise_store = False
-                
-        self._file_cache_path = None
-        self._file_cache = None        
-        
-        self._assign_config(self, config)
-
-        self.url_lifetime = 3600 * 24 * 2
-        self.url_lifetime_slack = 3600 * 24  
-        self.url_key = "123456789"
-        self.url_method = "GET"
-        self.url_prefix = "/v1"
-        
         
 class PersistentStoreConfig(BaseConfig):
     """Configuration of the store system used to provide long-term resilient storage of preserved objects
@@ -374,27 +357,28 @@ class Configuration(BaseConfig):
     
     yaml_tag = u'!Main_Image_Repo_Configuration'
 
-    create_new = "Create a new repository with this configuration"
-    owner = "Identity of the owner of the repository"
-    pid_file = "Path of the file in which the PID of a running server will be stored"
-    local_file_cache_path = "Path to local filesystem where image files will be cached"
-    memory_cache_configuration = "In memory cache configuration"
+    create_new = "Create a new repository with this configuration (boolean)"
+    owner = "Identity of the owner of the repository (string)"
+    pid_file = "Path of the file in which the PID of a running server will be stored (string)"
+    local_file_cache_path = "Path to local filesystem where image files will be cached (string)"
+    memory_cache_configuration = "In memory cache for all images"
     local_cache_configuration = "Local file system cache for images, base and derived"
     swift_cache_configuration = "Swift cache of derived images - used to avoid regeneration"
-    persisent_store_configuration = "Config of persistent object store for images"
-    max_size = "Maximum allocation of image store"
-    max_images = "Maximum number of images to store"
-    alarm_threshold = "Threshold to alarm image repository use"
-
-    thumbnail_default_format = "Default image format to generate thumbnails in"
-    thumbnail_default_size = "Default size for thumbnails"
-    thumbnail_equalise = "Whether to apply histogram equalisation to thumbnails"
-    thumbnail_liquid_resize = "Whether to allow distortion of the thumbnail aspect ratio for very long or very wide images"
-    thumbnail_sharpen = "Whether to apply a sharpen operation to thumbnails"
-    thumbnail_liquid_cutin_ratio = "If applying a distorted resize, what cutin ratio to use for a liquid rescale"
+    persisent_store_configuration = "Persistent object store for permanently retained images"
+    max_size = "Maximum allocation of space in bytes to store all images, 0 = unlimited (integer)"
+    max_images = "Maximum number of any images to store, 0 = unlimited (integer)"
+    alarm_threshold = "Threshold of image repository use to signal an alarm at (real in range 0.0:1.0)"
+    image_default_format = "Defualt format to deliver images in. (string)"
     
-    cannonical_format_used = "Whether to convert images to a standard intermediate format"
-    cannonical_format = "If converting to a connonical format, what format to use"
+    thumbnail_default_format = "Default image format to generate thumbnails in (string)"
+    thumbnail_default_size = "Default size for thumbnails. tuple(integer,integer)"
+    thumbnail_equalise = "Whether to apply histogram equalisation to thumbnails (boolean)"
+    thumbnail_liquid_resize = "Whether to allow distortion of the thumbnail aspect ratio for very long or very wide images (boolean)"
+    thumbnail_sharpen = "Whether to apply a sharpen operation to thumbnails (boolean)"
+    thumbnail_liquid_cutin_ratio = "If applying a distorted resize, what cutin ratio to use for a liquid rescale (real)"
+    
+    cannonical_format_used = "Whether to convert images to a standard intermediate format (boolean)"
+    cannonical_format = "If converting to a cannonical format, what format to use (string)"
     
     def __init__(self, config_file):
         self.create_new = False
@@ -418,6 +402,7 @@ class Configuration(BaseConfig):
         
         self.cannonical_format_used = False
         self.cannonical_format = "miff"
+        self.image_default_format = 'jpg'
         
         config = None
         if config_file is not None:

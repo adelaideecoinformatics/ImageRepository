@@ -485,7 +485,9 @@ class ImageName:
         self._operations.append("size({},{})".format(size[0],size[1]))
         self._image_size = size
         if kind is not None:
-            self._image_kind = kind   
+            self._image_kind = kind
+        else:
+            kind = self._configuration.image_defualt_format
         self._image_name = self.__str__()
         self._image_size = size
             

@@ -958,7 +958,7 @@ class ImageInstance(object):
             return self.thumbnail(name.size(), options)
         
         if name.is_resize():
-            return self.resize(name._image_size, kind = name.kind())
+            return self.resize(name._image_size, kind = name.image_kind())
 
         if name.image_kind() != self.kind():
             return self.convert(name.image_kind())
