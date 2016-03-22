@@ -487,7 +487,7 @@ class ImageName:
         if kind is not None:
             self._image_kind = kind
         else:
-            kind = self._configuration.image_defualt_format
+            kind = self._configuration.image_default_format
         self._image_name = self.__str__()
         self._image_size = size
             

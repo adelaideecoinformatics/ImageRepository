@@ -43,7 +43,7 @@ valid_image_formats = ["jpg","tif","png", "bmp","bpg"]
 class ImageSchema(Schema):
     """Schema for requests for an image within the repository including derived images
     """
-    xsize = fields.Int(missing = None)
+    xsize = fields.Int(missing = None, default = None)
     ysize = fields.Int(missing = None)
     kind = fields.Str(missing = 'jpg')
     thumbnail = fields.Boolean(missing = False)
@@ -51,11 +51,6 @@ class ImageSchema(Schema):
     meta = fields.Boolean(missing = False)
     regex = fields.Str(missing = None)
 
-    @pre_load
-    def process_image(self, data):
-#        print "got data {}".format([x for x in data])
-        return data
-        
     @validates('kind')
     def validate_kind(self, value):
         if value.lower() not in valid_image_formats:
@@ -87,8 +82,12 @@ class Image(Resource):
     """
     def get(self, image_name):
 
-        args, errors = ImageSchema().load(request.args)
-
+        try:
+            args, errors = ImageSchema(strict=True).load(request.args)
+        except ValidationError as ex:
+            abort(400, message = ex.messages)
+#            return ex.messages, 500
+        
         # Find if the original image exists
 
         # In principle we could have both an image_name and a regex.
@@ -127,12 +126,12 @@ class Image(Resource):
             # Simple default behaviour for size parameters
             x_size = None
             y_size = None
+
             if args['xsize'] is not None:
                 x_size = args['xsize']
-
             if args['ysize'] is not None:
                 y_size = args['ysize']
-
+                    
             if x_size is None:
                 x_size = y_size
             if y_size is None:
