@@ -272,23 +272,34 @@ class ImageList(Resource):
 
 
 def prestart():
+    """Bring up the image repository to the point where we can field requests"""
     global master, repo
-    repo.repository_start()
-    master = repo.cache_master()
+    repo.repository_start()  # load the cache controllers ready to begin fielding requests
+    master = repo.cache_master() # master is the interface to the caches
         
 def startup(app):
+    """Configure and run the repository
+
+    :param app: the Flask application instance that will control us
+    :type app: Instance of Flask
+    """
     global master, repo
-    api = Api(app)
-    api.add_resource(ImageList, '/images', methods = ['GET'])
-    api.add_resource(Image, '/images/<path:image_name>', methods = ['GET', 'POST', 'DELETE'])
-    api.add_resource(Image1, '/images/', methods = ['GET'])
+
+    # Build configuration for the repo, includes command line options and configuration file.
     repo = Configuration.ImageRepository()
-    repo.repository_server()    
-    app.before_first_request(prestart)
-    app.run(debug=True)
+    repo.repository_server()    # perform instantiation of static components
+    path_base = repo.configuration().repository_base_pathname
+    api = Api(app)
+    api.add_resource(ImageList, '/{}'.format(path_base), methods = ['GET'])
+    api.add_resource(Image, '/{}/<path:image_name>'.format(path_base), methods = ['GET', 'POST', 'DELETE'])
+    api.add_resource(Image1, '/{}/'.format(path_base), methods = ['GET'])
+
+    app.before_first_request(prestart) # defer startup until we need to load the caches etc. 
+    app.run(debug=True)         # Away we go
 
 
 def main():
+    """Bring up the server as a simple, single app, Flask instance."""
     app = Flask('image_repo')
     startup(app)
     

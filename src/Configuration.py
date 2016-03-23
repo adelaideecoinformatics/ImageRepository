@@ -125,6 +125,20 @@ class BaseConfig(yaml.YAMLObject):
         
     @classmethod
     def yaml_str(cls, data, level):
+        """Generate a parsable YAML configuration file from the config object
+
+        :param data: the configuration object to dump
+        :type data: Object derived from BaseConfig
+        :param level: The heirarchy level of the object within the configuration. 
+        :type level: int.
+
+        The ordinary yaml dumpers don't provide a particualrly friendly or human readable result, and
+        they don't support output of comments.  So a self describing config file is hard. The routine
+        generates a human friendly file, and places informative comments against each line of the file.
+
+        The main use is to allow a self describing config file to be created from the internal defaults,
+        which may then be modified by the user to create a customised configuration.
+        """
         comment_column = 60
         indent = level * 4
         the_string = ""
@@ -141,13 +155,22 @@ class BaseConfig(yaml.YAMLObject):
                     comment_str = cls.find_comment(entry, data)
                     data_str = str(data.__dict__[entry] if not isinstance(data.__dict__[entry], str) else "'{}'".format(data.__dict__[entry]))
                     padding = max(5, comment_column - (len(entry) + len(data_str) + 2))  # Try to make comments align
-                    the_string += "{:>{}s}{}: {}{:>{}}#  {}\n".format('', indent, entry, data_str,'' , padding, comment_str)
+                    the_string += "{:>{}s}{}: {}{:>{}}#  {}\n".format('', indent, entry, data_str, '', padding, comment_str)
                     
         return the_string
         
 
     @classmethod
     def find_comment(cls, entry, data):
+        """Find the comment associated with the entry, either in the current class or in the first superclass it is found
+
+        Comments are class variables with the same name as the instance variable. Since some variables may have been inherited,
+        we need to recurse up the inheritance tree to find the comment.
+
+        The search is actually depth first, so if configuration variables have conficting names in odd ways with mixins the
+        wrong comment might be found.  Mixins with conficting names is something to be avoided at any time, so no effort
+        is made to cope with this.
+        """
         if isinstance(cls, BaseConfig):
             return ''
         if entry in cls.__dict__:
@@ -188,15 +211,23 @@ class BaseConfig(yaml.YAMLObject):
     
 class CacheConfig(BaseConfig):
     """Cache operation configuration
-    """
 
+    * evict_free_threshold = Fraction of allocation used to begin eviction from cache (real in range 0.0:1.0)
+    * evict_hysterysis = Fraction of store allocation used less than evict threshold to allow ending eviction (real in range 0.0:1.0)
+    * priority = Which object to favour for retention: one of 'newest', 'largest', 'smallest', 'thumbnail'
+    * eager_writeback = Writeback strategy, one of 'eager', 'lazy', 'never'
+    * alarm_free_threshold = Proportion of store allocation free to signal alarm (real in range 0.0:1.0)
+    * max_size = Maximum size of store (bytes), 0 = unlimited (integer)
+    * max_elements = Maximum number of elements to store. 0 = unlimited (integer)
+    * next_level = Next cache down in the heirarchy
+    """
     
     yaml_tag = u'!Cache_Configuration'
-    evict_free_threshold = "Fraction of allocation used to begin eviction from cache (real in range (0.0:1.0)"
-    evict_hysterysis = "Fraction of store allocation used less than evict threshold to allow ending eviction (real in range (0.0:1.0)"
+    evict_free_threshold = "Fraction of allocation used to begin eviction from cache (real in range 0.0:1.0)"
+    evict_hysterysis = "Fraction of store allocation used less than evict threshold to allow ending eviction (real in range 0.0:1.0)"
     priority = "Which object to favour for retention: one of 'newest', 'largest', 'smallest', 'thumbnail'"
     eager_writeback = "Writeback strategy, one of 'eager', 'lazy', 'never'"
-    alarm_free_threshold = "Proportion of store allocation free to signal alarm (real in range (0.0:1.0)"
+    alarm_free_threshold = "Proportion of store allocation free to signal alarm (real in range 0.0:1.0)"
     max_size = "Maximum size of store (bytes), 0 = unlimited (integer)"
     max_elements = "Maximum number of elements to store. 0 = unlimited (integer)"
     next_level = "Next cache down in the heirarchy"
@@ -206,7 +237,7 @@ class CacheConfig(BaseConfig):
         self.evict_free_threshold = 0.2
         self.evict_hysterysis = 0.2
         self.priority = "newest"  # newest, smallest, largest, oldest
-        self.eager_writeback = False
+        self.eager_writeback = 'never'
         self.alarm_free_threshold = 0.1
         self.max_size = 1 * 1024 * 1024 * 1024 # Gigabytes
         self.max_elements = 1024 * 1024
@@ -216,6 +247,23 @@ class CacheConfig(BaseConfig):
 
 class CredentialsConfig(BaseConfig):
     """Configuration of access credentials used for Nectre
+
+    * username = Owner user of the swift storage (key, value)
+    * authurl = URL of the authentication server (key, value)
+    * tenant = Project name or similar (key, value)
+    * tenant_id = Id string for the project (key, value)
+    * password = Swift access password (key, value)
+
+    key value pair (mechanism, param) mechanism may be one of:
+
+    * `env` Use the specified environment variable to obtain the value
+    * `file` Read the value from the specified file name.
+    * `explicit` The value here is the value to use.
+
+    - `('env' : 'OS_AUTH_URL')`  takes the value from the environment variable `OS_AUTH_URL`
+    - `('file' : '/users/home/repo/secret/password')`  reads the value from the file
+    - `('explicit' : 'xyzzy')`  uses the value `xyzzy`
+
     """
     
     yaml_tag = u"!Nectre_Credentials"
@@ -223,7 +271,7 @@ class CredentialsConfig(BaseConfig):
     authurl = "URL of the authentication server (key, value)"
     tenant = "Project name or similar (key, value)"
     tenant_id = "Id string for the project (key, value)"
-    password = "Swift access password (key, value)"
+    password = "Swift access password (key, value)"    
     
     def __init__(self, config):
         super(CredentialsConfig, self).__init__(config)
@@ -285,6 +333,18 @@ class CredentialsConfig(BaseConfig):
     
 class SwiftStoreConfig(CacheConfig):
     """Configuration of a Swift store used to hold long-term resilient storage of preserved objects
+
+    * credentials = Credentials needed to access Swift store
+    * container = Name of Container for objects (string)
+    * server_url = Swift store server URL (string)
+    * use_file_cache = When downloading from the server, place downloaded files into the file cache (boolean)
+    * download_path = Path to use for downloaded files if not using the file cache (string)
+    * initialise_store = Whether to create a new, empty, store (boolean)
+
+    * url_lifetime = How long a temporary URL will last for in seconds (integer)
+    * url_lifetime_slack = Max additional time a URL will be allowed to last in seconds. Use to avoid constant recreation of derived images (integer)
+    * url_key = Private key set for container to authenticate temporary ULRs (string)
+    * url_method = Temporary URL access mechanism (usually GET)
     """
     
     yaml_tag = u'!Swift_Storage_Configuration'
@@ -323,6 +383,9 @@ class SwiftStoreConfig(CacheConfig):
 
 class LocalFileCacheConfig(CacheConfig):
     """Configuration of local file storage.
+
+    * cache_path = Path to directory where local files will cache images
+    * initialise = Whether to create a new clean local file cache
     """
     cache_path = "Path to directory where local files will cache images"
     initialise = "Whether to create a new clean local file cache"
@@ -354,6 +417,30 @@ class PersistentStoreConfig(BaseConfig):
         
 class Configuration(BaseConfig):
     """Top level configuration object
+
+    * create_new = Create a new repository with this configuration (boolean)
+    * owner = Identity of the owner of the repository (string)
+    * pid_file = Path of the file in which the PID of a running server will be stored (string)
+    * local_file_cache_path = Path to local filesystem where image files will be cached (string)
+    * memory_cache_configuration = In memory cache for all images
+    * local_cache_configuration = Local file system cache for images, base and derived
+    * swift_cache_configuration = Swift cache of derived images - used to avoid regeneration
+    * persisent_store_configuration = Persistent object store for permanently retained images
+    * max_size = Maximum allocation of space in bytes to store all images, 0 = unlimited (integer)
+    * max_images = Maximum number of any images to store, 0 = unlimited (integer)
+    * alarm_threshold = Threshold of image repository use to signal an alarm at (real in range 0.0:1.0)
+    * image_default_format = Default format to deliver images in. (string)
+    * repository_base_pathname = Top level name of the URL routing for the server    
+
+    * thumbnail_default_format = Default image format to generate thumbnails in (string)
+    * thumbnail_default_size = Default size for thumbnails [ int, int ]
+    * thumbnail_equalise = Whether to apply histogram equalisation to thumbnails (boolean)
+    * thumbnail_liquid_resize = Whether to allow distortion of the thumbnail aspect ratio for very long or very wide images (boolean)
+    * thumbnail_sharpen = Whether to apply a sharpen operation to thumbnails (boolean)
+    * thumbnail_liquid_cutin_ratio = If applying a distorted resize, what cutin ratio to use for a liquid rescale (real)
+    
+    * cannonical_format_used = Whether to convert images to a standard intermediate format (boolean)
+    * cannonical_format = If converting to a cannonical format, what format to use (string)
     """
     
     yaml_tag = u'!Main_Image_Repo_Configuration'
@@ -369,12 +456,11 @@ class Configuration(BaseConfig):
     max_size = "Maximum allocation of space in bytes to store all images, 0 = unlimited (integer)"
     max_images = "Maximum number of any images to store, 0 = unlimited (integer)"
     alarm_threshold = "Threshold of image repository use to signal an alarm at (real in range 0.0:1.0)"
-    image_default_format = "Defualt format to deliver images in. (string)"
+    image_default_format = "Default format to deliver images in. (string)"
+    repository_base_pathname = "Top level name of the URL routing for the server"
     
     thumbnail_default_format = "Default image format to generate thumbnails in (string)"
     thumbnail_default_size = "Default size for thumbnails [ int, int ]"
-    thumbnail_default_xsize = "Default x-size for thumbnails (integer)"
-    thumbnail_default_ysize = "Default y-size for thumbnails (integer)"
     thumbnail_equalise = "Whether to apply histogram equalisation to thumbnails (boolean)"
     thumbnail_liquid_resize = "Whether to allow distortion of the thumbnail aspect ratio for very long or very wide images (boolean)"
     thumbnail_sharpen = "Whether to apply a sharpen operation to thumbnails (boolean)"
@@ -386,6 +472,7 @@ class Configuration(BaseConfig):
     def __init__(self, config_file):
         self.create_new = False
         self.owner = None
+        self.repository_base_pathname = "images"        
         self.local_file_cache_path = "/var/tmp/image_repo"
         self.pid_file = "/var/tmp/image_repo_pid"
         self.memory_cache_configuration = CacheConfig(None)    # If we use a slab of memory to cache some images, base and derived
@@ -484,11 +571,9 @@ class SignalHandler:
 
 
 class ImageRepository:
-    """Encapsulates server startup and shutdown
-
-    """
-    def __init__(self):
-        
+    """Encapsulates server, startup and shutdown"""
+    
+    def __init__(self):        
         self._logger = None
         self._args = None
         self._config = None
@@ -594,8 +679,7 @@ class ImageRepository:
     def shutdown(self):
         """Manage clean shutdown of the repository"""
 
-
-        # Ensure that all the persistent entities are safe
+        # May wish to ensure that all the persistent entities are safe
         
         try:
             os.remove(self._config.pid_file)
@@ -626,30 +710,26 @@ class ImageRepository:
         sys.exit(os.EX_OSERR)
 
     def cache_master(self):
+        """Returns the cache master object for the repository
+
+        This is the core interface for operation of the server.
+
+        :returns: CacheMaster
+        """
         return self._cache_master
 
-    
-    # This is wrong
-    def run(self, app, debug = False):
-        global args, logger, error, config
-        try:
-            app.run(debug = debug)
-            self.shutdown()
-        except KeyboardInterrupt:
-            self._logger.info("Keyboard interrupt halts processing.")
-            self.shutdown()
-        except RepositoryError:
-            self.fatal_shutdown()
-            #    except Exception as ex:
-            #        logger.exception("Unhandled exception, exiting.", exc_info = ex)
-            #        sys.exit(1)
-        else:
-            exit(os.EX_OSERR)
-        sys.exit(os.EX_OK)
-
     def repository_start(self):
+        """Startup and load the various caches ready for operation"""
+        
         # lazy load of image database
         self._cache_master = Caches.startup(config)
+
+    def configuration(self):
+        """Return the full configuration object
+
+        :returns: Configuration
+        """
+        return self._config
         
     def repository_server(self):
         """Top level instantiation of the Image Repository
@@ -733,6 +813,9 @@ class ImageRepository:
                 Caches.stress_test(config)
                 exit(os.EX_OK)
 
+            # If we reach this point the image repository will have been brought to the point
+            # it can begin running. We return to the caller, who is responsible for actual
+            # handling of requests.                
             return
 
         except KeyboardInterrupt:
