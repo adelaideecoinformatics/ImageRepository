@@ -84,7 +84,7 @@ The accepted requests are as follows:
 Note: The regex is in Perl/Python syntax. This is not URL safe, and if the expressions are to be used, approriate quoting (URL safe `UTF-8`) of the expression will usually be needed. This makes use of them painful when used on the command-line (such as with `curl`).
 
 * A `GET` request on `/images` will provide a listing of all images in the repository. `regex` is supported on this request.
-* A `PUT` request on `/images/path/to/image` will upload an image with an image name as specified in the path.
+* A `POST` request on `/images/path/to/image` will upload an image with an image name as specified in the path.
 * A `GET` request on `/images/path/to/image` will return the designated image as modified by the appropriate modifiers.
 
 
