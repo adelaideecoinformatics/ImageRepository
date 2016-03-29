@@ -15,6 +15,7 @@ import os
 import os.path
 import tempfile
 import zipfile
+import logging
 from flask import Flask
 from flask_restful import reqparse, abort, Api, Resource
 from flask_restful import fields
@@ -36,6 +37,7 @@ from Exceptions import RepositoryError, RepositoryFailure
 
 master = None
 repo = None
+repo_logger = None
 
 # TODO - make this list complete - use Wand's definitions
 valid_image_formats = ["jpg","tif","png", "bmp","bpg"]
@@ -96,16 +98,16 @@ class Image(Resource):
         regexp = args['regex']
         try:
             if regexp is not None:
-                if image_name is not None and image_name[-1] != '/':
-                    image_name += '/'
-                
+                if image_name is not None and image_name[-1] != u'/':
+                    image_name += u'/'
+
                 image_names = master.list_base_images(image_name, regexp)
 
                 if len(image_names) == 0:
-                    abort(404, message="No images match '{}{}'".format( '' if image_name is None else image_name + '/',   regexp))
+                    abort(404, message="No images match '{}  regex={}'".format( '' if image_name is None else image_name, regexp))
             else:
-                if image_name is None or len(image_name) == 0 or image_name[-1] == '/':
-                    regexp = '\w+'   # path ends in a /  - make it a directory like search
+                if image_name is None or len(image_name) == 0 or image_name[-1] == u'/':
+                    regexp = '\S+'   # path ends in a /  - make it a directory like search
                     image_names =  master.list_base_images(image_name, regexp)
                     if len(image_names) == 0:
                         abort(404, message="No images found in '{}'".format(image_name if image_name is not None else '/'))                    
@@ -114,10 +116,10 @@ class Image(Resource):
                         print image_name, regexp
                         abort(404, message="Image '{}' not found".format(image_name))
                     image_names = [image_name]
-                    
+            
             # If it is metadata request, we can just return that now.
             if args['meta']:                
-                return [ ( str(image_name), image._get_metadata()) for image in master.get_original_images(image_name, regexp) ]
+                return [ ( str(image.name), image._get_metadata()) for image in master.get_original_images(image_names, regexp) ]
 
             # Otherwise it is an image request
             # Name includes desired image format
@@ -149,7 +151,7 @@ class Image(Resource):
             
             # If a URL is requested we generate that and return it
             if args['url']:
-                return [ the_image.url() for the_image in new_images]
+                return [the_image.url() for the_image in new_images]
 
             # Otherwise we return the actual image
             if len(new_images) == 1:        
@@ -160,7 +162,11 @@ class Image(Resource):
                 the_temp_file = os.path.join("/var/tmp", the_uuid + ".zip")
                 zf = zipfile.ZipFile(the_temp_file, "w", zipfile.ZIP_DEFLATED)
                 for the_image in new_images:
-                    zf.write(master.as_local_file(str(the_image.name)), arcname = str(the_image.name))
+                    filename = master.as_local_file(str(the_image.name))                    
+                    imagename = str(the_image.name)
+                    repo_logger.debug("Adding {} as {} to zip archive".format(filename, imagename))
+                    
+                    zf.write(filename = filename, arcname = imagename)
                 zf.close()
                 return send_file(the_temp_file, mimetype = 'application/zip')
         except (RepositoryError, RepositoryFailure) as ex:
@@ -204,8 +210,10 @@ class Image(Resource):
         If the path includes an image name the filename in the upload is ignored, although we may do some sanity checking on type.
         If the path terminates in a ``/`` we use the filename as passed by the upload, and the path as a psuedo-directory specification
         """
-        
-        args, errors = ImageUpload().load(request.args)
+        try:
+            args, errors = ImageUpload(strict=True).load(request.args)
+        except ValidationError as ex:
+            abort(400, message = ex.messages)
         file_req = request.files['file']
         
         if file_req is not None:
@@ -237,7 +245,7 @@ class Image(Resource):
 
 class Image1(Image):
     def get(self):
-        super(Image1, self).get(None)
+        return super(Image1, self).get(None)
         
         
 class ListSchema(Schema):
@@ -254,11 +262,14 @@ class ImageList(Resource):
         a regexp can be provided that allows for filtering the traverse - essentially allowing for
         traversal of sub-directories, and for some other useful searches
         """
-        args, errors = ListSchema().load(request.args)
+        try:
+            args, errors = ListSchema(strict=True).load(request.args)
+        except ValidationError as ex:
+            abort(400, message = ex.messages)
         regexp = args['regex']
         #  Some sanity checking on the regexp here?
         try:
-            return master.list_base_images(regexp)
+            return master.list_base_images(regexp = regexp)
         except (RepositoryError, RepositoryFailure) as ex:
             return ex.http_error()
             
@@ -283,12 +294,13 @@ def startup(app):
     :param app: the Flask application instance that will control us
     :type app: Instance of Flask
     """
-    global master, repo
+    global master, repo, repo_logger
 
-    # Build configuration for the repo, includes command line options and configuration file.
     repo = Configuration.ImageRepository()
     repo.repository_server()    # perform instantiation of static components
+    repo_logger = logging.getLogger("image_repository")    
     path_base = repo.configuration().repository_base_pathname
+
     api = Api(app)
     api.add_resource(ImageList, '/{}'.format(path_base), methods = ['GET'])
     api.add_resource(Image, '/{}/<path:image_name>'.format(path_base), methods = ['GET', 'POST', 'DELETE'])
@@ -296,7 +308,6 @@ def startup(app):
 
     app.before_first_request(prestart) # defer startup until we need to load the caches etc. 
     app.run(debug=True)         # Away we go
-
 
 def main():
     """Bring up the server as a simple, single app, Flask instance."""

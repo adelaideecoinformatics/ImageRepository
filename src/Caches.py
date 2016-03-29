@@ -35,7 +35,7 @@ class CacheEntry:
     Cache eviction policy is dependant upon retention policy and the time since an
     entry was last referenced.
     """
-    def __init__(self, image, size = 0, retain = False, permanent = False, retain_until = None):
+    def __init__(self, image, size = 0, retain = False, permanent = False, retain_until = 0):
         """Construct a CacheEntry
 
         :param image: Image the entry refers to
@@ -93,10 +93,13 @@ class CacheEntry:
         :param retain_until: The time until which the object must be retained, seconds since the epoch
         :type retain_until: int or None
         """
-        if retain_time is not None and retain_time > time.time():
-            retain_time = None
-            return        
+        if retain_time is not None and retain_time < time.time():
+            retain_time = 0
         self._retain_until = retain_time    
+
+    def get_retain_until(self):
+        return self._retain_until
+
         
     def has_persistence(self):
         """Return whether the image currently has a copy in persistent storage
@@ -859,9 +862,7 @@ class LocalFileImageCache(ImageCache):
         Uses ImageHandle to perform the task, as it encapsulates the file write capability of the Wand image.
         """
         try:
-            path = os.path.join(self._file_cache_path, ref)
-#            self._logger.debug("Storing image {} in local file cache".format(path))
-            element._image_handle.as_file(ref, self._file_cache_path)
+            element.get_image_handle().as_file(ref, self._file_cache_path)
             return element
         except (IOError) as ex:
             self._logger.exception("Failure to write file for local file cache".format(ref))
@@ -880,7 +881,7 @@ class LocalFileImageCache(ImageCache):
         if name not in self._contents:
             self._store_actual(name, element)
             self.add_image_handle(name, element)
-        return os.path.join(self._file_cache_path, name)            
+        return element.get_image_handle().get_file_path()
 
 
         
@@ -924,10 +925,14 @@ class PersistentImageCache(ImageCache):
                 self._size += size
                 names.append(name)
 
-#        logger.info("{} Starts with {} objects".format(self.__class__.__name__, len(names)))
+        logger.info("{} Starts with {} objects".format(self.__class__.__name__, len(names)))        
         image_metadata = self._store.find_metadata(names, ['lifetime'])
+        logger.info("{} {} objects with lifetime values".format(self.__class__.__name__, len(image_metadata)))
         for the_object, meta in image_metadata:
-            self._contents[the_object].set_retain_until(float(meta['lifetime']))
+            try:
+                self._contents[the_object].set_retain_until(float(meta['lifetime']))
+            except KeyError, ValueError:
+                continue
             
     # In principle a Swift store can hold an arbitrary amount of metadata as key:value pairs
     # By default we get the content_type from which we can get the image type that Swift thinks it is.
@@ -998,11 +1003,20 @@ class PersistentImageCache(ImageCache):
         :rtype: string
         """
         try:
+            # Not persistent, must force it back
             if not self._contents[str(name)].has_persistence():
                 self._store_actual(str(name), self._contents[str(name)][1].image)
-            lifetime = self._configuration.url_lifetime + time.time() + self._configuration.url_lifetime_slack
-            url = self._store.temporary_url(str(name), lifetime)
+            # try to avoid constant updates to the metadata by using a slack period
+            lifetime = self._contents[str(name)].get_retain_until()
+            update_metadata = False
+            # If the retain time is less than we are asking for, bump it up, and add the slack
+            if lifetime < self._configuration.url_lifetime + time.time():
+                lifetime = self._configuration.url_lifetime + time.time() + self._configuration.url_lifetime_slack
+                update_metadata = True
+
+            url = self._store.temporary_url(str(name), lifetime, update_metadata)
             self._contents[str(name)].set_retain_until(lifetime)
+            logger.debug("{}   Temp URL for {}. lifetime = {} update meta = {},  {}".format(self.__class__.__name__, name, lifetime, update_metadata, url))
             return url
         except KeyError:
             logger.error("{}   name {} not in cache for url creation".format(self.__class__.__name__, name))
@@ -1142,6 +1156,7 @@ class CacheMaster(ImageCache):
 
         Creates the designated caches, and binds them into a cache hierarchy.
         """
+        self._logger = logging.getLogger("image_repository")
         self._base_images = None
         self._memory_cache = MemoryImageCache(configuration.memory_cache_configuration)
 
@@ -1252,7 +1267,7 @@ class CacheMaster(ImageCache):
         if image is not None:
             return image
 
-        # Find the original image - we don't care about the image format, so we can look in the base_images
+        # Find the original image - we don't care about the image format, so we can simply look in the base_images
         try:
             base_image = self._base_images[definition_name.base_name()].baseimage(full_name = True)
             base_kind = base_image.name.image_kind()
@@ -1262,12 +1277,12 @@ class CacheMaster(ImageCache):
         # Cope with an edge case in the naming scheme. 
         # If there is no other derivation operation we need to force the format conversion
         # so the as_defined call will process it.
-        logger.debug("Converting to {} from {}".format(definition_name, base_image.name))
         if not definition_name.is_derived() and definition_name.image_kind() != base_kind:
-            definition_name.apply_convert(definition_name.image_kind())            
+            definition_name.apply_convert(definition_name.image_kind())
             logger.debug("Applied format conversion to base {} from {}".format(definition_name, base_image.name))
             
         new_image = base_image.as_defined(definition_name)
+        self.add(definition_name, new_image)
         if new_image is None:
             logger.error("As defined returns None image from {}".format(name))
             raise RepositoryFailure("As defined returns None image from {}".format(name))
@@ -1342,6 +1357,7 @@ class CacheMaster(ImageCache):
         """
         element = self.get(name)
         if element is None:
+            logger.error("Failed to find {} when attempting to get local file for image".format(name))
             return None
         return self._file_cache.as_local_file(name, element)
         
@@ -1402,20 +1418,17 @@ class CacheMaster(ImageCache):
             return False
         else:
             return match.group(0) == name
-            
-    
+                
     def list_base_images(self, path = None, regexp = None):
-        # For now not using the regexp
-
         if regexp is None:
             return self._get_base_images().keys()
         else:
             try:
-                exp = re.compile(regexp)
+                exp = re.compile(regexp) #, flags=re.DEBUG)
                 if path is not None:
                     base_images = [ name for name in self._get_base_images() if name.find(path) == 0 ]
                 else:
-                    base_images = self._get_base_images()
+                    base_images = [ name for name in self._get_base_images().keys() ]
                 return [name for name in base_images if self._match_found(exp, name)]
             except re.error as ex:
                 raise RepositoryFailure("Regular expression fails {}".format(re.error))
