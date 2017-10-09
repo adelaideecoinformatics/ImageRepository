@@ -12,10 +12,6 @@ from os import path
 
 here = path.abspath(path.dirname(__file__))
 
-# Get the long description from the README file
-with open(path.join(here, 'README.rst'), encoding='utf-8') as f:
-    long_description = f.read()
-
 setup(
     name='image_repo',
 
@@ -25,7 +21,6 @@ setup(
     version='1.0.0a1',
 
     description='Image repository providing on demand generation of thumbnails, formats, scaling, and metadata',
-    long_description=long_description,
 
     # The project's main homepage.
     url='https://github.com/https://github.com/adelaideecoinformatics/ImageRepository',
