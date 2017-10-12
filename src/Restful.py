@@ -307,12 +307,16 @@ def startup(app):
     api.add_resource(Image1, '/{}/'.format(path_base), methods = ['GET'])
 
     app.before_first_request(prestart) # defer startup until we need to load the caches etc. 
-    app.run(debug=True)         # Away we go
+
+def createapp():
+    app = Flask('image_repo')
+    startup(app)
+    return app
 
 def main():
     """Bring up the server as a simple, single app, Flask instance."""
-    app = Flask('image_repo')
-    startup(app)
+    app = createapp()
+    app.run(debug=True)         # Away we go
     
 if __name__ == '__main__':
     main()

@@ -1,6 +1,4 @@
-================
-Image Repository
-================
+# Image Repository
 
 An image repository that provides for on-demand creation of derived images, in particular: thumbnails, different formats, scaled images.
 
@@ -19,8 +17,61 @@ The repository is configured from a single YAML configuration file, however defa
 
 Images that are served are, by default, stripped of any metadata that may be present in them. This provides default security, preventing image metadata (especially geo-location data) from inadvertently leaking sensitive information.  Limited metadata can be seperately retrieved for images.
 
-Simple Use
-==========
+# Quickstart installing using pip
+
+You can install this app directly from github using pip. You should probably use a virtualenv too, like:
+
+    cd /some/dir/
+    mkdir my-image-repo
+    cd my-image-repo
+    virtualenv .
+    . bin/activate
+    pip install --upgrade git+git://github.com/adelaideecoinformatics/ImageRepository
+    image_repo -Yt > config.yml
+    # edit config.yml. At a minimum you'll want to change the following properties:
+    #  - local_cache_configuration.cache_path
+    #  - local_file_cache_path
+    #  - persistent_store_configuration.container
+    #  - swift_cache_configuration.container
+    #  - pid_file
+    chmod 600 /var/tmp/image_server # or whatever you set local_cache_configuration.cache_path to
+    # export all required Swift env vars:
+    export OS_AUTH_URL=https://keystone.rc.nectar.org.au:5000/v2.0/
+    export OS_USERNAME="user@edu.au"
+    export OS_PASSWORD="pass"
+    export OS_TENANT_NAME="name"
+    export OS_TENANT_ID="id"
+    # now we can run it
+    image_repo -y config.yml
+
+If you're developing the app, you can install from the filesystem:
+
+    pip install --upgrade git+file:/home/user/git/ImageRepository
+
+**Beware** that this will only install from the latest commit. It won't read dirty workspace changes.
+
+# Building and running docker image
+
+This app can be built into a docker container by doing:
+
+    cd ImageRepository/
+    docker build -t image-repo .
+
+You can then run the built image using:
+
+    docker run -d -p 80:80 -v /path/to/host/swift.sh:/swift.sh image-repo
+
+You'll need to create that `swift.sh` file to provide your Swift credentials:
+
+    export OS_AUTH_URL=https://keystone.rc.nectar.org.au:5000/v2.0/
+    export OS_USERNAME="user@uni.edu.au"
+    export OS_PASSWORD="somepass"
+    export OS_TENANT_NAME="tenant"
+    export OS_TENANT_ID="id"
+
+You can then access a listing of the stored images at http://localhost:80/images (or whatever host you ran the container on). See the section '*Interacting with the repository*' for more details on how to interact with the repo.
+
+# Simple Use
 
 To use the repository in its most simple form a very basic configuration is all that need be specified.
 All the configuration can be specified in a YAML format configuration file. All configuration has defaults,
@@ -51,8 +102,7 @@ in the configuration file. Note that the password is not set in the autogenerate
 For long term use, reading it from a suitably secure file, or explicitly injecting it into the process as an environment variable
 will be needed.
 
-Interacting with the repository
-===============================
+# Interacting with the repository
 
 Run in test mode (with the default Werkzeug server) provides access on `http://127.0.0.1:5000/`.
 

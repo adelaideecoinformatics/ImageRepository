@@ -1,0 +1,86 @@
+alarm_threshold: 0.8                                        #  Threshold of image repository use to signal an alarm at (real in range 0.0:1.0)
+cannonical_format: 'miff'                                   #  If converting to a cannonical format, what format to use (string)
+cannonical_format_used: False                               #  Whether to convert images to a standard intermediate format (boolean)
+create_new: False                                           #  Create a new repository with this configuration (boolean)
+image_default_format: 'jpg'                                 #  Default format to deliver images in. (string)
+local_cache_configuration:                                  #  Local file system cache for images, base and derived
+    alarm_free_threshold: 0.1                                   #  Proportion of store allocation free to signal alarm (real in range 0.0:1.0)
+    cache_path: /tmp/image_server                               #  Path to directory where local files will cache images
+    eager_writeback: 'never'                                    #  Writeback strategy, one of 'eager', 'lazy', 'never'
+    evict_free_threshold: 0.2                                   #  Fraction of allocation used to begin eviction from cache (real in range 0.0:1.0)
+    evict_hysterysis: 0.2                                       #  Fraction of store allocation used less than evict threshold to allow ending eviction (real in range 0.0:1.0)
+    initialise: False                                           #  Whether to create a new clean local file cache
+    max_elements: 1048576                                       #  Maximum number of elements to store. 0 = unlimited (integer)
+    max_size: 1073741824                                        #  Maximum size of store (bytes), 0 = unlimited (integer)
+    next_level: None                                            #  Next cache down in the heirarchy
+    priority: 'newest'                                          #  Which object to favour for retention: one of 'newest', 'largest', 'smallest', 'thumbnail'
+local_file_cache_path: '/repo'                              #  Path to local filesystem where image files will be cached (string)
+max_images: 0                                               #  Maximum number of any images to store, 0 = unlimited (integer)
+max_size: 0                                                 #  Maximum allocation of space in bytes to store all images, 0 = unlimited (integer)
+memory_cache_configuration:                                 #  In memory cache for all images
+    alarm_free_threshold: 0.1                                   #  Proportion of store allocation free to signal alarm (real in range 0.0:1.0)
+    eager_writeback: 'never'                                    #  Writeback strategy, one of 'eager', 'lazy', 'never'
+    evict_free_threshold: 0.2                                   #  Fraction of allocation used to begin eviction from cache (real in range 0.0:1.0)
+    evict_hysterysis: 0.2                                       #  Fraction of store allocation used less than evict threshold to allow ending eviction (real in range 0.0:1.0)
+    max_elements: 1048576                                       #  Maximum number of elements to store. 0 = unlimited (integer)
+    max_size: 1073741824                                        #  Maximum size of store (bytes), 0 = unlimited (integer)
+    next_level: None                                            #  Next cache down in the heirarchy
+    priority: 'newest'                                          #  Which object to favour for retention: one of 'newest', 'largest', 'smallest', 'thumbnail'
+owner: None                                                 #  Identity of the owner of the repository (string)
+persistent_store_configuration:                             #  
+    alarm_free_threshold: 0.1                                   #  Proportion of store allocation free to signal alarm (real in range 0.0:1.0)
+    container: '%SWIFT_STORE_PERSISTENT%'                       #  Name of Container for objects (string)
+    credentials:                                                #  Credentials needed to access Swift store
+        authurl: ('env', 'OS_AUTH_URL')                             #  URL of the authentication server (key, value)
+        password: ('env', 'OS_PASSWORD')                            #  Swift access password (key, value)
+        tenant: ('env', 'OS_TENANT_NAME')                           #  Project name or similar (key, value)
+        tenant_id: ('env', 'OS_TENANT_ID')                          #  Id string for the project (key, value)
+        username: ('env', 'OS_USERNAME')                            #  Owner user of the swift storage (key, value)
+    download_path: None                                         #  Path to use for downloaded files if not using the file cache (string)
+    eager_writeback: 'never'                                    #  Writeback strategy, one of 'eager', 'lazy', 'never'
+    evict_free_threshold: 0.2                                   #  Fraction of allocation used to begin eviction from cache (real in range 0.0:1.0)
+    evict_hysterysis: 0.2                                       #  Fraction of store allocation used less than evict threshold to allow ending eviction (real in range 0.0:1.0)
+    initialise_store: False                                     #  Whether to create a new, empty, store (boolean)
+    max_elements: 0                                             #  Maximum number of elements to store. 0 = unlimited (integer)
+    max_size: 0                                                 #  Maximum size of store (bytes), 0 = unlimited (integer)
+    next_level: None                                            #  Next cache down in the heirarchy
+    priority: 'newest'                                          #  Which object to favour for retention: one of 'newest', 'largest', 'smallest', 'thumbnail'
+    server_url: 'https://swift.rc.nectar.org.au:8888'           #  Swift store server URL (string)
+    url_key: '123456789'                                        #  Private key set for container to authenticate temporary ULRs (string)
+    url_lifetime: 172800                                        #  How long a temporary URL will last for in seconds (integer)
+    url_lifetime_slack: 86400                                   #  Max additional time a URL will be allowed to last in seconds. Use to avoid constant recreation of derived images (integer)
+    url_method: 'GET'                                           #  Temporary URL access mechanism (usually GET)
+    use_file_cache: True                                        #  When downloading from the server, place downloaded files into the file cache (boolean)
+pid_file: '/tmp/image_repo_pid'                             #  Path of the file in which the PID of a running server will be stored (string)
+repository_base_pathname: 'images'                          #  Top level name of the URL routing for the server
+swift_cache_configuration:                                  #  Swift cache of derived images - used to avoid regeneration
+    alarm_free_threshold: 0.1                                   #  Proportion of store allocation free to signal alarm (real in range 0.0:1.0)
+    container: '%SWIFT_STORE_PERSISTENT%'                       #  Name of Container for objects (string)
+    credentials:                                                #  Credentials needed to access Swift store
+        authurl: ('env', 'OS_AUTH_URL')                             #  URL of the authentication server (key, value)
+        password: ('env', 'OS_PASSWORD')                            #  Swift access password (key, value)
+        tenant: ('env', 'OS_TENANT_NAME')                           #  Project name or similar (key, value)
+        tenant_id: ('env', 'OS_TENANT_ID')                          #  Id string for the project (key, value)
+        username: ('env', 'OS_USERNAME')                            #  Owner user of the swift storage (key, value)
+    download_path: None                                         #  Path to use for downloaded files if not using the file cache (string)
+    eager_writeback: 'never'                                    #  Writeback strategy, one of 'eager', 'lazy', 'never'
+    evict_free_threshold: 0.2                                   #  Fraction of allocation used to begin eviction from cache (real in range 0.0:1.0)
+    evict_hysterysis: 0.2                                       #  Fraction of store allocation used less than evict threshold to allow ending eviction (real in range 0.0:1.0)
+    initialise_store: False                                     #  Whether to create a new, empty, store (boolean)
+    max_elements: 0                                             #  Maximum number of elements to store. 0 = unlimited (integer)
+    max_size: 0                                                 #  Maximum size of store (bytes), 0 = unlimited (integer)
+    next_level: None                                            #  Next cache down in the heirarchy
+    priority: 'newest'                                          #  Which object to favour for retention: one of 'newest', 'largest', 'smallest', 'thumbnail'
+    server_url: 'https://swift.rc.nectar.org.au:8888'           #  Swift store server URL (string)
+    url_key: '123456789'                                        #  Private key set for container to authenticate temporary ULRs (string)
+    url_lifetime: 172800                                        #  How long a temporary URL will last for in seconds (integer)
+    url_lifetime_slack: 86400                                   #  Max additional time a URL will be allowed to last in seconds. Use to avoid constant recreation of derived images (integer)
+    url_method: 'GET'                                           #  Temporary URL access mechanism (usually GET)
+    use_file_cache: True                                        #  When downloading from the server, place downloaded files into the file cache (boolean)
+thumbnail_default_format: 'jpg'                             #  Default image format to generate thumbnails in (string)
+thumbnail_default_size: [50, 50]                            #  Default size for thumbnails [ int, int ]
+thumbnail_equalise: True                                    #  Whether to apply histogram equalisation to thumbnails (boolean)
+thumbnail_liquid_cutin_ratio: 5.0                           #  If applying a distorted resize, what cutin ratio to use for a liquid rescale (real)
+thumbnail_liquid_resize: True                               #  Whether to allow distortion of the thumbnail aspect ratio for very long or very wide images (boolean)
+thumbnail_sharpen: True                                     #  Whether to apply a sharpen operation to thumbnails (boolean)
+
