@@ -1,0 +1,11 @@
+Steps:
+First step...
+
+Expected behaviour:
+What was meant to happen?
+
+Actual behaviour:
+What actually happened?
+
+More details:
+Anything else we need to know?
