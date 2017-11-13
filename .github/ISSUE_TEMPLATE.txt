@@ -1,6 +1,5 @@
 Steps:
- - start server
- - add more steps...
+First step...
 
 Expected behaviour:
 What was meant to happen?
