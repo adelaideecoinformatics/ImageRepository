@@ -17,6 +17,14 @@ The repository is configured from a single YAML configuration file, however defa
 
 Images that are served are, by default, stripped of any metadata that may be present in them. This provides default security, preventing image metadata (especially geo-location data) from inadvertently leaking sensitive information.  Limited metadata can be seperately retrieved for images.
 
+# Requirements
+
+ 1. python 2.7 (probably won't work with 3+)
+ 1. internet connection, the server cannot run offline
+ 1. access credentials to a Swift object store on OpenStack, probably on NECTAR
+
+If you want to build Docker images of the repo or run pre-built ones, you'll also need Docker.
+
 # Quickstart installing using pip
 
 You can install this app directly from github using pip. You should probably use a virtualenv too, like:
@@ -34,7 +42,7 @@ image_repo -Yt > config.yml
 #  - persistent_store_configuration.container
 #  - swift_cache_configuration.container
 #  - pid_file
-chmod 600 /var/tmp/image_server # or whatever you set local_cache_configuration.cache_path to
+chmod 700 /var/tmp/image_server # or whatever you set local_cache_configuration.cache_path to
 # export all required Swift env vars:
 export OS_AUTH_URL=https://keystone.rc.nectar.org.au:5000/v2.0/
 export OS_USERNAME="user@edu.au"
@@ -44,11 +52,57 @@ export OS_TENANT_ID="id"
 # now we can run it
 image_repo -y config.yml
 ```
-If you're developing the app, you can install from the filesystem:
+You can install from the filesystem if you've cloned/downloaded the repo:
 ```bash
 pip install --upgrade git+file:/home/user/git/ImageRepository
 ```
 **Beware** that this will only install from the latest commit. It won't read dirty workspace changes.
+
+# Developer workflow - running the app locally using Flask
+
+Doing the `pip install` method is too cumbersome when developing locally. Instead, you can directly run the app using uwsgi and Flask with hot reloading. Follow these steps to create a virtualenv, install the requirements and start the app:
+
+```bash
+git clone <this repo>
+cd ImageRepository
+export git_dir=`pwd`
+export repo_dir=~/my-image-repo
+mkdir $repo_dir
+cd $repo_dir
+virtualenv .
+. bin/activate
+pip install Flask uwsgi # see https://uwsgi-docs.readthedocs.io/en/latest/Install.html if you have uWSGI issues
+cd $git_dir
+python setup.py install
+cd $repo_dir
+image_repo -Yt > config.yml
+# You need to edit the config.yml file. At a minimum you'll want to change the following properties:
+#  - local_cache_configuration.cache_path       consider $repo_dir/cache
+#  - local_file_cache_path                      consider $repo_dir/file_cache
+#  - pid_file                                   consider $repo_dir/pid
+sed -i "s+/var/tmp+$repo_dir+" config.yml # this will put update these 3 local paths to your $repo_dir
+#  - persistent_store_configuration.container
+#  - swift_cache_configuration.container
+# You need to edit these by hand to match the bucket names you've created in Swift
+mkdir $repo_dir/image_server $repo_dir/image_repo # assuming you configured these dirs in the config
+chmod 700 $repo_dir/image_server # or whatever you set local_cache_configuration.cache_path to
+# export all required Swift env vars (it might be easier to put this in a file and source that file):
+export OS_AUTH_URL=https://keystone.rc.nectar.org.au:5000/v2.0/
+export OS_USERNAME="user@edu.au"
+export OS_PASSWORD="pass"
+export OS_TENANT_NAME="name"
+export OS_TENANT_ID="id"
+# now we can run it
+# NOTE: we can't use Flask directly becuase that won't let us pass parameters to our app
+uwsgi\
+  --http :5000\
+  --callable=app\
+  --pythonpath=$git_dir/src/\
+  --wsgi-file=$git_dir/src/main.py\
+  --py-autoreload=1\
+  --pyargv="-y $repo_dir/config.yml --debug" # add args to our app here
+# open http://localhost:5000/images to get a list of images the server knows about
+```
 
 # Building and running docker image
 
