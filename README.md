@@ -20,55 +20,55 @@ Images that are served are, by default, stripped of any metadata that may be pre
 # Quickstart installing using pip
 
 You can install this app directly from github using pip. You should probably use a virtualenv too, like:
-
-    cd /some/dir/
-    mkdir my-image-repo
-    cd my-image-repo
-    virtualenv .
-    . bin/activate
-    pip install --upgrade git+git://github.com/adelaideecoinformatics/ImageRepository
-    image_repo -Yt > config.yml
-    # edit config.yml. At a minimum you'll want to change the following properties:
-    #  - local_cache_configuration.cache_path
-    #  - local_file_cache_path
-    #  - persistent_store_configuration.container
-    #  - swift_cache_configuration.container
-    #  - pid_file
-    chmod 600 /var/tmp/image_server # or whatever you set local_cache_configuration.cache_path to
-    # export all required Swift env vars:
-    export OS_AUTH_URL=https://keystone.rc.nectar.org.au:5000/v2.0/
-    export OS_USERNAME="user@edu.au"
-    export OS_PASSWORD="pass"
-    export OS_TENANT_NAME="name"
-    export OS_TENANT_ID="id"
-    # now we can run it
-    image_repo -y config.yml
-
+```bash
+cd /some/dir/
+mkdir my-image-repo
+cd my-image-repo
+virtualenv .
+. bin/activate
+pip install --upgrade git+git://github.com/adelaideecoinformatics/ImageRepository
+image_repo -Yt > config.yml
+# edit config.yml. At a minimum you'll want to change the following properties:
+#  - local_cache_configuration.cache_path
+#  - local_file_cache_path
+#  - persistent_store_configuration.container
+#  - swift_cache_configuration.container
+#  - pid_file
+chmod 600 /var/tmp/image_server # or whatever you set local_cache_configuration.cache_path to
+# export all required Swift env vars:
+export OS_AUTH_URL=https://keystone.rc.nectar.org.au:5000/v2.0/
+export OS_USERNAME="user@edu.au"
+export OS_PASSWORD="pass"
+export OS_TENANT_NAME="name"
+export OS_TENANT_ID="id"
+# now we can run it
+image_repo -y config.yml
+```
 If you're developing the app, you can install from the filesystem:
-
-    pip install --upgrade git+file:/home/user/git/ImageRepository
-
+```bash
+pip install --upgrade git+file:/home/user/git/ImageRepository
+```
 **Beware** that this will only install from the latest commit. It won't read dirty workspace changes.
 
 # Building and running docker image
 
 This app can be built into a docker container by doing:
-
-    cd ImageRepository/
-    docker build -t image-repo .
-
-You can then run the built image using:
-
-    docker run -d -p 80:80 -v /path/to/host/swift.sh:/swift.sh image-repo
-
-You'll need to create that `swift.sh` file to provide your Swift credentials:
-
-    export OS_AUTH_URL=https://keystone.rc.nectar.org.au:5000/v2.0/
-    export OS_USERNAME="user@uni.edu.au"
-    export OS_PASSWORD="somepass"
-    export OS_TENANT_NAME="tenant"
-    export OS_TENANT_ID="id"
-
+```bash
+cd ImageRepository/
+docker build -t image-repo .
+```
+You'll need to create a `swift.sh` file to provide your Swift credentials inside the container. You can find a template in `ImageRepository/docker/swift.sh` or copy from the following:
+```bash
+export OS_AUTH_URL=https://keystone.rc.nectar.org.au:5000/v2.0/
+export OS_USERNAME="user@uni.edu.au"
+export OS_PASSWORD="somepass"
+export OS_TENANT_NAME="tenant"
+export OS_TENANT_ID="id"
+```
+You can then run the built image using (edit `/path/to/host/` to suit your machine):
+```bash
+docker run -d -p 80:80 -v /path/to/host/swift.sh:/swift.sh image-repo
+```
 You can then access a listing of the stored images at http://localhost:80/images (or whatever host you ran the container on). See the section '*Interacting with the repository*' for more details on how to interact with the repo.
 
 # Simple Use
