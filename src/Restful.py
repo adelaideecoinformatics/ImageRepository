@@ -138,7 +138,9 @@ class Image(Resource):
                 x_size = y_size
             if y_size is None:
                 y_size = x_size
-
+            
+            repo_logger.debug("Using x={} and y={} as dimensions".format(x_size, y_size))
+            
             if args['thumbnail']:
                 for the_name in new_names:
                     the_name.apply_thumbnail((args['xsize'], args['ysize']), kind = args['kind'])
