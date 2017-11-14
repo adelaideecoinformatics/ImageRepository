@@ -1,0 +1,64 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: image-repository-server
+  namespace: imagerepo
+spec:
+  template:
+    metadata:
+      labels:
+        run: image-repository-server
+    spec:
+      containers:
+      - image: asia.gcr.io/image-repo-1234/imagerepository:test
+        name: image-repo-pod
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        env:
+        - name: OS_AUTH_URL
+          value: https://keystone.rc.nectar.org.au:5000/v2.0/
+        - name: OS_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: image-repo-secrets
+              key: swiftusername
+        - name: OS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: image-repo-secrets
+              key: swiftpassword
+        - name: OS_TENANT_NAME
+          valueFrom:
+            secretKeyRef:
+              name: image-repo-secrets
+              key: swifttenantname
+        - name: OS_TENANT_ID
+          valueFrom:
+            secretKeyRef:
+              name: image-repo-secrets
+              key: swifttenantid
+        - name: SWIFT_P
+          valueFrom:
+            secretKeyRef:
+              name: image-repo-secrets
+              key: persistentbucket
+        - name: SWIFT_C
+          valueFrom:
+            secretKeyRef:
+              name: image-repo-secrets
+              key: cachebucket
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: image-repo-service
+  namespace: imagerepo
+spec:
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    run: image-repository-server
+  type: NodePort

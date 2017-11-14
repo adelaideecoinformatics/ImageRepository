@@ -104,29 +104,47 @@ uwsgi\
 # open http://localhost:5000/images to get a list of images the server knows about
 ```
 
-# Building and running docker image
+# Building and running a Docker image
 
 This app can be built into a docker container by doing:
 ```bash
 cd ImageRepository/
 docker build -t image-repo .
 ```
-You'll need to create a `swift.sh` file to provide your Swift credentials inside the container. You can find a template in `ImageRepository/docker/swift.sh` or copy from the following:
-```bash
-export OS_AUTH_URL=https://keystone.rc.nectar.org.au:5000/v2.0/
-export OS_USERNAME="user@uni.edu.au"
-export OS_PASSWORD="somepass"
-export OS_TENANT_NAME="tenant"
-export OS_TENANT_ID="id"
-export SWIFT_P="image-repo"        # swift persistent bucket
-export SWIFT_C="image-repo-cache"  # swift cache bucket
+The container needs your credentials to access Swift and these are configured using environment variables. You have two options for providing them: the `-e` flag to Docker or putting all the values in a *envfile* and referencing that with `--env-file`.
 
+To do the envfile method, you'll need to create the file like the following:
+```yaml
+# imagerepo.env
+OS_AUTH_URL=https://keystone.rc.nectar.org.au:5000/v2.0/
+OS_USERNAME=user@uni.edu.au
+OS_PASSWORD=somepass
+OS_TENANT_NAME=tenant
+OS_TENANT_ID=id
+SWIFT_P=image-repo        # swift persistent bucket
+SWIFT_C=image-repo-cache  # swift cache bucket
 ```
-You can then run the built image using (edit `/path/to/host/` to suit your machine):
+Then you use this file in the run command
 ```bash
-docker run -d -p 80:80 -v /path/to/host/swift.sh:/swift.sh image-repo
+docker run --rm -it -p 18080:80 --env-file imagerepo.env image-repo
 ```
-You can then access a listing of the stored images at http://localhost:80/images (or whatever host you ran the container on). See the section '*Interacting with the repository*' for more details on how to interact with the repo.
+Alternatively you can supply the values directly on the command line with the `-e` flag
+```bash
+docker run --rm -it -p 18080:80 \
+  -e OS_AUTH_URL=https://keystone.rc.nectar.org.au:5000/v2.0/ \
+  -e OS_USERNAME=user@uni.edu.au \
+  -e OS_PASSWORD=somepass \
+  -e OS_TENANT_NAME=tenant \
+  -e OS_TENANT_ID=id \
+  -e SWIFT_P=image-repo \
+  -e SWIFT_C=image-repo-cache \
+  image-repo
+```
+Note: if you already have the values defined in host environment, you can use the `-e OS_USERNAME` (no `=` or value) to inherit that value. This works for either method described above. Read more at [https://docs.docker.com/engine/reference/commandline/run/#set-environment-variables--e-env-env-file]().
+
+You can then access a listing of the stored images at http://localhost:18080/images assuming you run Docker locally. See the section '*Interacting with the repository*' for more details on how to interact with the repo.
+
+You can `Control+c` to kill the container and it will be automatically removed because we used the `--rm` flag. Change `--rm` to `-d` to run in the background.
 
 # Simple Use
 

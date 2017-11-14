@@ -5,7 +5,6 @@ RUN ln -s /app /src
 WORKDIR /
 RUN python /setup.py install
 COPY ./docker/config.yml /config.yml
-COPY ./docker/swift.sh /swift.sh
 COPY ./docker/entrywrapper.sh /entrywrapper.sh
 COPY ./docker/uwsgi.ini /app/uwsgi.ini
 ENV CACHE_DIR=/tmp/image_server
