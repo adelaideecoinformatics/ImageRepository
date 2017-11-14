@@ -118,6 +118,9 @@ export OS_USERNAME="user@uni.edu.au"
 export OS_PASSWORD="somepass"
 export OS_TENANT_NAME="tenant"
 export OS_TENANT_ID="id"
+export SWIFT_P="image-repo"        # swift persistent bucket
+export SWIFT_C="image-repo-cache"  # swift cache bucket
+
 ```
 You can then run the built image using (edit `/path/to/host/` to suit your machine):
 ```bash
