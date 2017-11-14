@@ -58,7 +58,7 @@ pip install --upgrade git+file:/home/user/git/ImageRepository
 ```
 **Beware** that this will only install from the latest commit. It won't read dirty workspace changes.
 
-# Developer workflow - running the app locally using Flask
+# Developer workflow - running the app locally using uwsgi+Flask
 
 Doing the `pip install` method is too cumbersome when developing locally. Instead, you can directly run the app using uwsgi and Flask with hot reloading. Follow these steps to create a virtualenv, install the requirements and start the app:
 
