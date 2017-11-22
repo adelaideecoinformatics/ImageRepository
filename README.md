@@ -80,10 +80,11 @@ image_repo -Yt > config.yml
 #  - local_cache_configuration.cache_path       consider $repo_dir/cache
 #  - local_file_cache_path                      consider $repo_dir/file_cache
 #  - pid_file                                   consider $repo_dir/pid
-sed -i "s+/var/tmp+$repo_dir+" config.yml # this will put update these 3 local paths to your $repo_dir
+sed -i "s+/var/tmp+$repo_dir+" config.yml # this will put update the 3 local paths above to your $repo_dir
+# You need to edit these two below by hand to match the bucket names you've created in Swift
 #  - persistent_store_configuration.container
 #  - swift_cache_configuration.container
-# You need to edit these by hand to match the bucket names you've created in Swift
+edit config.yml # to update the two properties above
 mkdir -p $repo_dir/image_server $repo_dir/image_repo # assuming you configured these dirs in the config
 chmod 700 $repo_dir/image_server # or whatever you set local_cache_configuration.cache_path to
 # export all required Swift env vars (it might be easier to put this in a file and source that file):
