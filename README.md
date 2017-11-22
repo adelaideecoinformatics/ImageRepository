@@ -30,7 +30,7 @@ If you want to build Docker images of the repo or run pre-built ones, you'll als
 You can install this app directly from github using pip. You should probably use a virtualenv too, like:
 ```bash
 cd /some/dir/
-mkdir my-image-repo
+mkdir -p my-image-repo
 cd my-image-repo
 virtualenv .
 . bin/activate
@@ -67,7 +67,7 @@ git clone <this repo>
 cd ImageRepository
 export git_dir=`pwd`
 export repo_dir=~/my-image-repo
-mkdir $repo_dir
+mkdir -p $repo_dir
 cd $repo_dir
 virtualenv .
 . bin/activate
@@ -84,7 +84,7 @@ sed -i "s+/var/tmp+$repo_dir+" config.yml # this will put update these 3 local p
 #  - persistent_store_configuration.container
 #  - swift_cache_configuration.container
 # You need to edit these by hand to match the bucket names you've created in Swift
-mkdir $repo_dir/image_server $repo_dir/image_repo # assuming you configured these dirs in the config
+mkdir -p $repo_dir/image_server $repo_dir/image_repo # assuming you configured these dirs in the config
 chmod 700 $repo_dir/image_server # or whatever you set local_cache_configuration.cache_path to
 # export all required Swift env vars (it might be easier to put this in a file and source that file):
 export OS_AUTH_URL=https://keystone.rc.nectar.org.au:5000/v2.0/
