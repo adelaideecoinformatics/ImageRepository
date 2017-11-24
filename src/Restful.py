@@ -21,7 +21,8 @@ from flask_restful import reqparse, abort, Api, Resource
 from flask_restful import fields
 from flask_restful import inputs
 from flask_restful import request
-from flask import send_file
+from flask import send_file, request
+from accept_types import get_best_match
 
 from marshmallow import Schema, fields, ValidationError, pre_load, validates
 
@@ -78,17 +79,17 @@ class ImageUpload(Schema):
     username = fields.Str(missing = None)
 #    name = fields.Str(required = True)   # Not using this - using path name of URL
     
-    
 class Image(Resource):
     """
     """
     def get(self, image_name):
-
+        acceptheader = request.headers['Accept']
+        best_mime = self.get_mime(acceptheader)
+        repo_logger.debug("best mime = " + str(best_mime))
         try:
             args, errors = ImageSchema(strict=True).load(request.args)
         except ValidationError as ex:
             abort(400, message = ex.messages)
-#            return ex.messages, 500
         
         # Find if the original image exists
 
@@ -174,6 +175,14 @@ class Image(Resource):
         except (RepositoryError, RepositoryFailure) as ex:
             return ex.http_error()
 
+    def get_mime(self, acceptheader):
+        repo_logger.debug("Supplied Accept header is '{}'".format(acceptheader))
+        default_mime = 'image/jpeg'
+        result = get_best_match(acceptheader, [default_mime, 'image/tiff', 'image/png', 'image/bmp', 'image/bpg', 'application/json'])
+        if result is None:
+            result = default_mime
+        repo_logger.debug("Best matched MIME type is '{}'".format(result))
+        return result
         
     @staticmethod
     def _allowed_file(filename):
@@ -300,7 +309,7 @@ def startup(app):
 
     repo = Configuration.ImageRepository()
     repo.repository_server()    # perform instantiation of static components
-    repo_logger = logging.getLogger("image_repository")    
+    repo_logger = logging.getLogger("image_repository")
     path_base = repo.configuration().repository_base_pathname
 
     api = Api(app)
@@ -319,6 +328,12 @@ def main():
     """Bring up the server as a simple, single app, Flask instance."""
     app = createapp()
     app.run(debug=True)         # Away we go
-    
+
+class TestOnly:
+    @staticmethod
+    def initlogger():
+        global repo_logger
+        repo_logger = logging.getLogger("test_image_repository")
+
 if __name__ == '__main__':
     main()
