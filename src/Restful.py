@@ -5,9 +5,6 @@ This a provided by the RestFul Flask library.
 
 We use the Marshmallow Schema and parsing library rather than the Flask one
 as it is indicated that the Flask system is deprecated, and Marshmallow is preferred.
-
-
-
 """
 
 import uuid
@@ -31,13 +28,6 @@ import Caches
 import Configuration
 import Stores
 from Exceptions import RepositoryError, RepositoryFailure
-
-
-#app = Flask(__name__)
-
-master = None
-repo = None
-repo_logger = None
 
 # TODO - make this list complete - use Wand's definitions
 valid_image_formats = ["jpg","tif","png", "bmp","bpg"]
@@ -81,9 +71,14 @@ class ImageUpload(Schema):
 class Image(Resource):
     """
     """
+    def __init__(self, **kwargs):
+        self.master = kwargs.pop('master', None)
+        self.repo_logger = kwargs['repo_logger']
+
     def get(self, image_name):
         best_mime = self.get_mime()
-        repo_logger.debug("Proceeding with Accept MIME = '{}'".format(best_mime))
+        self.repo_logger.debug("Proceeding with Accept MIME = '{}'".format(best_mime))
+        # TODO call separate handler if MIME = json
         try:
             args, errors = ImageSchema(strict=True).load(request.args)
         except ValidationError as ex:
@@ -100,25 +95,25 @@ class Image(Resource):
                 if image_name is not None and image_name[-1] != u'/':
                     image_name += u'/'
 
-                image_names = master.list_base_images(image_name, regexp)
+                image_names = self.master.list_base_images(image_name, regexp)
 
                 if len(image_names) == 0:
                     abort(404, message="No images match '{}  regex={}'".format( '' if image_name is None else image_name, regexp))
             else:
                 if image_name is None or len(image_name) == 0 or image_name[-1] == u'/':
                     regexp = '\S+'   # path ends in a /  - make it a directory like search
-                    image_names =  master.list_base_images(image_name, regexp)
+                    image_names =  self.master.list_base_images(image_name, regexp)
                     if len(image_names) == 0:
                         abort(404, message="No images found in '{}'".format(image_name if image_name is not None else '/'))                    
                 else:
-                    if not master.contains_original(image_name, regexp):
+                    if not self.master.contains_original(image_name, regexp):
                         print image_name, regexp
                         abort(404, message="Image '{}' not found".format(image_name))
                     image_names = [image_name]
             
             # If it is metadata request, we can just return that now.
             if args['meta']:                
-                return [ ( str(image.name), image._get_metadata()) for image in master.get_original_images(image_names, regexp) ]
+                return [ ( str(image.name), image._get_metadata()) for image in self.master.get_original_images(image_names, regexp) ]
 
             # Otherwise it is an image request
             # Name includes desired image format
@@ -138,7 +133,7 @@ class Image(Resource):
             if y_size is None:
                 y_size = x_size
             
-            repo_logger.debug("Using x={} and y={} as dimensions".format(x_size, y_size))
+            self.repo_logger.debug("Using x={} and y={} as dimensions".format(x_size, y_size))
             
             if args['thumbnail']:
                 for the_name in new_names:
@@ -148,7 +143,7 @@ class Image(Resource):
                     for the_name in new_names:
                         the_name.apply_resize((x_size, y_size), kind = args['kind'])
 
-            new_images = [ master.get_as_defined(the_name) for the_name in new_names ]
+            new_images = [ self.master.get_as_defined(the_name) for the_name in new_names ]
             
             # If a URL is requested we generate that and return it
             if args['url']:
@@ -163,9 +158,9 @@ class Image(Resource):
                 the_temp_file = os.path.join("/var/tmp", the_uuid + ".zip")
                 zf = zipfile.ZipFile(the_temp_file, "w", zipfile.ZIP_DEFLATED)
                 for the_image in new_images:
-                    filename = master.as_local_file(str(the_image.name))                    
+                    filename = self.master.as_local_file(str(the_image.name))                    
                     imagename = str(the_image.name)
-                    repo_logger.debug("Adding {} as {} to zip archive".format(filename, imagename))
+                    self.repo_logger.debug("Adding {} as {} to zip archive".format(filename, imagename))
                     
                     zf.write(filename = filename, arcname = imagename)
                 zf.close()
@@ -174,12 +169,12 @@ class Image(Resource):
             return ex.http_error()
 
     def get_mime(self):
-        repo_logger.debug("Supplied Accept header is '{}'".format(request.headers['Accept']))
+        self.repo_logger.debug("Supplied Accept header is '{}'".format(request.headers['Accept']))
         default_mime = 'image/jpeg'
         result = request.accept_mimetypes.best_match([default_mime, 'image/tiff', 'image/png', 'image/bmp', 'image/bpg', 'application/json'])
         if result is None:
             result = default_mime
-        repo_logger.debug("Best matched MIME type is '{}'".format(result))
+        self.repo_logger.debug("Best matched MIME type is '{}'".format(result))
         return result
         
     @staticmethod
@@ -245,8 +240,8 @@ class Image(Resource):
                 the_name = ImageName.from_raw((image_name))
                 image = ImageType.OriginalImage.from_filelike(file_req, name = the_name, full_name = True)
                 the_name.set_original(True)
-                master.add(the_name, image)
-                master.make_persistent(the_name)
+                self.master.add(the_name, image)
+                self.master.make_persistent(the_name)
             except (RepositoryError, RepositoryFailure) as ex:
                 return ex.http_error()
             return "{}".format(image.name.base_name())  # Return the name by which the repository addresses the image
@@ -261,9 +256,12 @@ class ListSchema(Schema):
     regex = fields.Str(missing = None)
     
 class ImageList(Resource):
-    """Interface provides an endpoint at ``/images`` which allows listing and upload
+    """Interface provides an endpoint at ``/images`` which allows listing and upload"""
 
-    """
+    def __init__(self, **kwargs):
+        self.master = kwargs.pop('master', None)
+        self.repo_logger = kwargs['repo_logger']
+
     def get(self):
         """GET operation
 
@@ -278,7 +276,7 @@ class ImageList(Resource):
         regexp = args['regex']
         #  Some sanity checking on the regexp here?
         try:
-            return master.list_base_images(regexp = regexp)
+            return self.master.list_base_images(regexp = regexp)
         except (RepositoryError, RepositoryFailure) as ex:
             return ex.http_error()
             
@@ -291,11 +289,6 @@ class ImageList(Resource):
         return "Operation not supported. Upload files relative to images/  ", 405        
 
 
-def prestart():
-    """Bring up the image repository to the point where we can field requests"""
-    global master, repo
-    repo.repository_start()  # load the cache controllers ready to begin fielding requests
-    master = repo.cache_master() # master is the interface to the caches
         
 def startup(app):
     """Configure and run the repository
@@ -303,19 +296,24 @@ def startup(app):
     :param app: the Flask application instance that will control us
     :type app: Instance of Flask
     """
-    global master, repo, repo_logger
-
     repo = Configuration.ImageRepository()
-    repo.repository_server()    # perform instantiation of static components
-    repo_logger = logging.getLogger("image_repository")
+    repo.repository_server()  # perform instantiation of static components
+    repo.repository_start()  # load the cache controllers ready to begin fielding requests
+    # TODO consider lazy init with app.before_first_request() if we can figure out how to
+    #   populate the master variable before repo.repository_start() is called
+    master = repo.cache_master() # master is the interface to the caches
+
+    dependencies = {
+        'repo_logger': logging.getLogger("image_repository"),
+        'master': master
+    }
+
     path_base = repo.configuration().repository_base_pathname
 
     api = Api(app)
-    api.add_resource(ImageList, '/{}'.format(path_base), methods = ['GET'])
-    api.add_resource(Image, '/{}/<path:image_name>'.format(path_base), methods = ['GET', 'POST', 'DELETE'])
-    api.add_resource(Image1, '/{}/'.format(path_base), methods = ['GET'])
-
-    app.before_first_request(prestart) # defer startup until we need to load the caches etc. 
+    api.add_resource(ImageList, '/{}/'.format(path_base), methods = ['GET'], resource_class_kwargs=dependencies)
+    api.add_resource(Image, '/{}/<path:image_name>'.format(path_base), methods = ['GET', 'POST', 'DELETE'], resource_class_kwargs=dependencies)
+    api.add_resource(Image1, '/{}/'.format(path_base), methods = ['GET'], resource_class_kwargs=dependencies)
 
 def createapp():
     app = Flask('image_repo')
@@ -325,13 +323,7 @@ def createapp():
 def main():
     """Bring up the server as a simple, single app, Flask instance."""
     app = createapp()
-    app.run(debug=True)         # Away we go
-
-class TestOnly:
-    @staticmethod
-    def initlogger():
-        global repo_logger
-        repo_logger = logging.getLogger("test_image_repository")
+    app.run()
 
 if __name__ == '__main__':
     main()
