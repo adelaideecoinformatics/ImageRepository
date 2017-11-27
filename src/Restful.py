@@ -22,7 +22,6 @@ from flask_restful import fields
 from flask_restful import inputs
 from flask_restful import request
 from flask import send_file, request
-from accept_types import get_best_match
 
 from marshmallow import Schema, fields, ValidationError, pre_load, validates
 
@@ -83,9 +82,8 @@ class Image(Resource):
     """
     """
     def get(self, image_name):
-        acceptheader = request.headers['Accept']
-        best_mime = self.get_mime(acceptheader)
-        repo_logger.debug("best mime = " + str(best_mime))
+        best_mime = self.get_mime()
+        repo_logger.debug("Proceeding with Accept MIME = '{}'".format(best_mime))
         try:
             args, errors = ImageSchema(strict=True).load(request.args)
         except ValidationError as ex:
@@ -175,10 +173,10 @@ class Image(Resource):
         except (RepositoryError, RepositoryFailure) as ex:
             return ex.http_error()
 
-    def get_mime(self, acceptheader):
-        repo_logger.debug("Supplied Accept header is '{}'".format(acceptheader))
+    def get_mime(self):
+        repo_logger.debug("Supplied Accept header is '{}'".format(request.headers['Accept']))
         default_mime = 'image/jpeg'
-        result = get_best_match(acceptheader, [default_mime, 'image/tiff', 'image/png', 'image/bmp', 'image/bpg', 'application/json'])
+        result = request.accept_mimetypes.best_match([default_mime, 'image/tiff', 'image/png', 'image/bmp', 'image/bpg', 'application/json'])
         if result is None:
             result = default_mime
         repo_logger.debug("Best matched MIME type is '{}'".format(result))
