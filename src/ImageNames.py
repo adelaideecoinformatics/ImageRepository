@@ -124,7 +124,6 @@ class ImageName:
         """
         # Encode everything in the name that could cause us problems
         try:
-#            raw_name.
             encoded_name = urllib.quote(raw_name.encode('utf-8', errors = 'backslashreplace'))
         except UnicodeError:
             raise RepositoryFailure("Failure in encoding raw_name")

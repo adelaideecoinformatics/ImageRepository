@@ -1,6 +1,6 @@
 from flask import Flask
-from Restful import startup
+from Restful import createapp
 
 def main():
-    app = Flask(__name__)
-    startup(app)
+    app = createapp()
+    app.run()

@@ -30,7 +30,9 @@ import Stores
 from Exceptions import RepositoryError, RepositoryFailure
 
 # TODO - make this list complete - use Wand's definitions
-valid_image_formats = ["jpg","tif","png", "bmp","bpg"]
+valid_image_formats = ["jpg", "tif", "png", "bmp", "bpg"]
+default_mime = 'image/jpeg'
+accepted_mimes = [default_mime, 'image/tiff', 'image/png', 'image/bmp', 'image/bpg', 'application/json']
 
 class ImageSchema(Schema):
     """Schema for requests for an image within the repository including derived images
@@ -78,7 +80,32 @@ class Image(Resource):
     def get(self, image_name):
         best_mime = self.get_mime()
         self.repo_logger.debug("Proceeding with Accept MIME = '{}'".format(best_mime))
-        # TODO call separate handler if MIME = json
+        strategy_lookup = {
+            'application/json': 'application/json',
+            'image/jpeg': 'image'
+            # TODO add other image types
+        }
+        if best_mime in strategy_lookup:
+            handler_name_suffix = strategy_lookup[best_mime]
+        else:
+            handler_name_suffix = best_mime
+        handler_name = 'get_' + handler_name_suffix.replace('/', '_')
+        handler = self[handler_name]
+        if handler is None:
+            response_body = {
+                'message': "Cannot handle the requested type '{}'".format(best_mime),
+                'accepted_mimes': accepted_mimes
+            }
+            return response_body, 406
+        return handler(image_name)
+
+    def get_application_json(self, image_name):
+        response = {
+            'filename': image_name + '.json'
+        }
+        return response
+
+    def get_image(self, image_name):
         try:
             args, errors = ImageSchema(strict=True).load(request.args)
         except ValidationError as ex:
@@ -112,6 +139,7 @@ class Image(Resource):
                     image_names = [image_name]
             
             # If it is metadata request, we can just return that now.
+            # TODO consider removing this as new functionality may replace this
             if args['meta']:                
                 return [ ( str(image.name), image._get_metadata()) for image in self.master.get_original_images(image_names, regexp) ]
 
@@ -155,7 +183,7 @@ class Image(Resource):
             else:
                 # Only way to return multiple files is to create a zip archive and send that
                 the_uuid = str(uuid.uuid1())
-                the_temp_file = os.path.join("/var/tmp", the_uuid + ".zip")
+                the_temp_file = os.path.join("/var/tmp", the_uuid + ".zip") # FIXME replace /var/tmp with config path
                 zf = zipfile.ZipFile(the_temp_file, "w", zipfile.ZIP_DEFLATED)
                 for the_image in new_images:
                     filename = self.master.as_local_file(str(the_image.name))                    
@@ -170,10 +198,9 @@ class Image(Resource):
 
     def get_mime(self):
         self.repo_logger.debug("Supplied Accept header is '{}'".format(request.headers['Accept']))
-        default_mime = 'image/jpeg'
-        result = request.accept_mimetypes.best_match([default_mime, 'image/tiff', 'image/png', 'image/bmp', 'image/bpg', 'application/json'])
+        result = request.accept_mimetypes.best_match(accepted_mimes)
         if result is None:
-            result = default_mime
+            result = request.accept_mimetypes.best
         self.repo_logger.debug("Best matched MIME type is '{}'".format(result))
         return result
         
@@ -245,7 +272,9 @@ class Image(Resource):
             except (RepositoryError, RepositoryFailure) as ex:
                 return ex.http_error()
             return "{}".format(image.name.base_name())  # Return the name by which the repository addresses the image
-        
+    
+    def __getitem__(self, name):
+        return getattr(self, name, None)
 
 class Image1(Image):
     def get(self):
@@ -288,9 +317,15 @@ class ImageList(Resource):
         """
         return "Operation not supported. Upload files relative to images/  ", 405        
 
-
+def build_api(path_base, dependencies):
+    app = Flask('image_repo')
+    api = Api(app)
+    api.add_resource(ImageList, '/{}/'.format(path_base), methods = ['GET'], resource_class_kwargs=dependencies)
+    api.add_resource(Image, '/{}/<path:image_name>'.format(path_base), methods = ['GET', 'POST', 'DELETE'], resource_class_kwargs=dependencies)
+    api.add_resource(Image1, '/{}/'.format(path_base), methods = ['GET'], resource_class_kwargs=dependencies)
+    return app
         
-def startup(app):
+def startup():
     """Configure and run the repository
 
     :param app: the Flask application instance that will control us
@@ -310,14 +345,10 @@ def startup(app):
 
     path_base = repo.configuration().repository_base_pathname
 
-    api = Api(app)
-    api.add_resource(ImageList, '/{}/'.format(path_base), methods = ['GET'], resource_class_kwargs=dependencies)
-    api.add_resource(Image, '/{}/<path:image_name>'.format(path_base), methods = ['GET', 'POST', 'DELETE'], resource_class_kwargs=dependencies)
-    api.add_resource(Image1, '/{}/'.format(path_base), methods = ['GET'], resource_class_kwargs=dependencies)
+    return build_api(path_base, dependencies)
 
 def createapp():
-    app = Flask('image_repo')
-    startup(app)
+    app = startup()
     return app
 
 def main():
