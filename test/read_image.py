@@ -17,7 +17,7 @@ desired_file_type = 'jpeg'
 
 input_file_path = '{}/1pixel.png'.format(DIRPATH)
 image = OriginalImage.from_file(filename = input_file_path)
-base64str = b64encode(image.convert('jpeg').as_bytes())
+base64str = b64encode(image.convert(desired_file_type).as_bytes())
 print(base64str)
 
 # In a test, you can then decode it with

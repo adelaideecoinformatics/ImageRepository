@@ -82,7 +82,8 @@ class Image(Resource):
         self.repo_logger.debug("Proceeding with Accept MIME = '{}'".format(best_mime))
         strategy_lookup = {
             'application/json': 'application/json',
-            'image/jpeg': 'image'
+            'image/jpeg': 'image',
+            'image/png': 'image'
             # TODO add other image types
         }
         if best_mime in strategy_lookup:

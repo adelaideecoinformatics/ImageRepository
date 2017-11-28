@@ -63,16 +63,33 @@ class TestRestful(unittest.TestCase):
 
             def get_as_defined(self, the_name):
                 onepixel_jpeg = '/9j/4AAQSkZJRgABAQIAHAAcAAD//gATQ3JlYXRlZCB3aXRoIEdJTVD/2wBDAAMCAgICAgMCAgIDAwMDBAYEBAQEBAgGBgUGCQgKCgkICQkKDA8MCgsOCwkJDRENDg8QEBEQCgwSExIQEw8QEBD/wAALCAABAAEBAREA/8QAFAABAAAAAAAAAAAAAAAAAAAACf/EABQQAQAAAAAAAAAAAAAAAAAAAAD/2gAIAQEAAD8AVN//2Q=='
-                handle = ImageHandle.from_bytes(the_bytes = b64decode(onepixel_jpeg))
-                return ImageInstance(image_name = the_name, image_handle = handle)
+                handle = ImageHandle.from_bytes(the_bytes=b64decode(onepixel_jpeg))
+                return ImageInstance(image_name=the_name, image_handle=handle)
         app = build_api('images', {'repo_logger': repo_logger, 'master': StubMaster()})
-        the_path = '/images/some_image'
         app.testing = True
-        result = app.test_client().get(path=the_path, headers={'Accept': 'image/jpeg'})
+        result = app.test_client().get(path='/images/some_image', headers={'Accept': 'image/jpeg'})
         self.assertEqual(result.status_code, 200)
         self.assertEqual(result.headers['Content-type'], 'image/jpeg')
         data_has_jpeg_magic_bytes = result.get_data()[:2] == '\xff\xd8' and result.get_data()[-2:] == '\xff\xd9'
         self.assertTrue(data_has_jpeg_magic_bytes, msg="Body doesn't look like a JPEG")
+
+    def test_get_image_png01(self):
+        """Can we call the correct handler when we request PNG?"""
+        class StubMaster:
+            def contains_original(self, image_name, regexp):
+                return True
+
+            def get_as_defined(self, the_name):
+                onepixel_png = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABAQAAAAA3bvkkAAAABGdBTUEAALGPC/xhBQAAACBjSFJNAAB6JgAAgIQAAPoAAACA6AAAdTAAAOpgAAA6mAAAF3CculE8AAAAAmJLR0QAAKqNIzIAAAAJcEhZcwAACxMAAAsTAQCanBgAAAAHdElNRQfhCxwGHyMXY7jvAAAACklEQVQI12NoAAAAggCB3UNq9AAAABl0RVh0Q29tbWVudABDcmVhdGVkIHdpdGggR0lNUFeBDhcAAAAldEVYdGRhdGU6Y3JlYXRlADIwMTctMTEtMjhUMTY6MDk6NDIrMTE6MDBd/JF+AAAAJXRFWHRkYXRlOm1vZGlmeQAyMDE3LTExLTI4VDE1OjE2OjI1KzExOjAwoib2SAAAAABJRU5ErkJggg=='
+                handle = ImageHandle.from_bytes(the_bytes=b64decode(onepixel_png))
+                return ImageInstance(image_name=the_name, image_handle=handle)
+        app = build_api('images', {'repo_logger': repo_logger, 'master': StubMaster()})
+        app.testing = True
+        result = app.test_client().get(path='/images/some_image', headers={'Accept': 'image/png'})
+        self.assertEqual(result.status_code, 200)
+        self.assertEqual(result.headers['Content-type'], 'image/png')
+        data_has_png_magic_bytes = result.get_data()[:8] == '\x89\x50\x4e\x47\x0d\x0a\x1a\x0a'
+        self.assertTrue(data_has_png_magic_bytes, msg="Body doesn't look like a PNG")
 
     def test_get01(self):
         """Can we return a 406 when we request a unhandled type?"""
