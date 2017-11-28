@@ -30,9 +30,9 @@ import Stores
 from Exceptions import RepositoryError, RepositoryFailure
 
 # TODO - make this list complete - use Wand's definitions
-valid_image_formats = ["jpg", "tif", "png", "bmp", "bpg"]
+valid_image_formats = ["jpg", "tif", "png", "bmp"]
 default_mime = 'image/jpeg'
-accepted_mimes = [default_mime, 'image/tiff', 'image/png', 'image/bmp', 'image/bpg', 'application/json']
+accepted_mimes = [default_mime, 'image/tiff', 'image/png', 'image/bmp', 'application/json']
 
 class ImageSchema(Schema):
     """Schema for requests for an image within the repository including derived images
@@ -83,8 +83,9 @@ class Image(Resource):
         strategy_lookup = {
             'application/json': 'application/json',
             'image/jpeg': 'image',
-            'image/png': 'image'
-            # TODO add other image types
+            'image/png': 'image',
+            'image/tiff': 'image',
+            'image/bmp': 'image'
         }
         if best_mime in strategy_lookup:
             handler_name_suffix = strategy_lookup[best_mime]

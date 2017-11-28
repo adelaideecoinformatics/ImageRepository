@@ -88,20 +88,63 @@ class TestRestful(unittest.TestCase):
         result = app.test_client().get(path='/images/some_image', headers={'Accept': 'image/png'})
         self.assertEqual(result.status_code, 200)
         self.assertEqual(result.headers['Content-type'], 'image/png')
-        data_has_png_magic_bytes = result.get_data()[:8] == '\x89\x50\x4e\x47\x0d\x0a\x1a\x0a'
-        self.assertTrue(data_has_png_magic_bytes, msg="Body doesn't look like a PNG")
+        self.assertEqual(result.get_data()[:8], '\x89\x50\x4e\x47\x0d\x0a\x1a\x0a', msg="Body doesn't look like a PNG")
+
+    def test_get_image_tiff01(self):
+        """Can we call the correct handler when we request TIFF?"""
+        class StubMaster:
+            def contains_original(self, image_name, regexp):
+                return True
+
+            def get_as_defined(self, the_name):
+                onepixel_tiff = 'SUkqABIAAAB42msAAACBAIEAEgAAAQMAAQAAAAEAAAABAQMAAQAAAAEAAAACAQMAAQAAAAEAAAADAQMAAQAAAAgAAAAGAQMAAQAAAAEAAAAKAQMAAQAAAAEAAAARAQQAAQAAAAgAAAASAQMAAQAAAAEAAAAVAQMAAQAAAAEAAAAWAQMAAQAAAAEAAAAXAQQAAQAAAAkAAAAaAQUAAQAAAPAAAAAbAQUAAQAAAPgAAAAcAQMAAQAAAAEAAAAoAQMAAQAAAAMAAAApAQMAAgAAAAAAAQA+AQUAAgAAADABAAA/AQUABgAAAAABAAAAAAAA/////+qsBwn/////6qwHCQAK16P/////gOF6VP////8AzcxM/////wCamZn/////gGZmJv/////wKFwP/////4AbDVD/////AFg5VP////8='
+                handle = ImageHandle.from_bytes(the_bytes=b64decode(onepixel_tiff))
+                return ImageInstance(image_name=the_name, image_handle=handle)
+        app = build_api('images', {'repo_logger': repo_logger, 'master': StubMaster()})
+        app.testing = True
+        result = app.test_client().get(path='/images/some_image', headers={'Accept': 'image/tiff'})
+        self.assertEqual(result.status_code, 200)
+        self.assertEqual(result.headers['Content-type'], 'image/tiff')
+        self.assertEqual(result.get_data()[:4], '\x49\x49\x2a\x00', msg="Body doesn't look like a TIFF")
+
+    def test_get_image_bmp01(self):
+        """Can we call the correct handler when we request BMP?"""
+        class StubMaster:
+            def contains_original(self, image_name, regexp):
+                return True
+
+            def get_as_defined(self, the_name):
+                onepixel_bmp = 'Qk2OAAAAAAAAAIoAAAB8AAAAAQAAAAEAAAABABgAAAAAAAQAAAATCwAAEwsAAAAAAAAAAAAAAAD/AAD/AAD/AAAAAAAA/0JHUnOAwvUoYLgeFSCF6wFAMzMTgGZmJkBmZgagmZkJPArXAyRcjzIAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAA////AA=='
+                handle = ImageHandle.from_bytes(the_bytes=b64decode(onepixel_bmp))
+                return ImageInstance(image_name=the_name, image_handle=handle)
+        app = build_api('images', {'repo_logger': repo_logger, 'master': StubMaster()})
+        app.testing = True
+        result = app.test_client().get(path='/images/some_image', headers={'Accept': 'image/bmp'})
+        self.assertEqual(result.status_code, 200)
+        self.assertEqual(result.headers['Content-type'], 'image/bmp')
+        self.assertEqual(result.get_data()[:2], '\x42\x4d', msg="Body doesn't look like a BMP")
 
     def test_get01(self):
         """Can we return a 406 when we request a unhandled type?"""
         app = build_api('images', {'repo_logger': repo_logger})
-        the_path = '/images/some_image'
         app.testing = True
-        result = app.test_client().get(path=the_path, headers={'Accept': 'test/alwaysfail'})
+        result = app.test_client().get(path='/images/some_image', headers={'Accept': 'test/alwaysfail'})
         self.assertEqual(result.status_code, 406)
         self.assertEqual(result.headers['Content-type'], 'application/json')
         body = json.loads(result.get_data())
         self.assertEqual(body['message'], u"Cannot handle the requested type 'test/alwaysfail'")
         self.assertEqual(len(body['accepted_mimes']), 6)
+
+    def test_get02(self):
+        """Assert that BPG isn't supported. Not that we have anything against it,
+        we just can support it and the original code had minimal support for it."""
+        app = build_api('images', {'repo_logger': repo_logger})
+        app.testing = True
+        result = app.test_client().get(path='/images/some_image', headers={'Accept': 'image/bpg'})
+        self.assertEqual(result.status_code, 406)
+        self.assertEqual(result.headers['Content-type'], 'application/json')
+        body = json.loads(result.get_data())
+        self.assertEqual(body['message'], u"Cannot handle the requested type 'image/bpg'")
 
 if __name__ == '__main__':
     unittest.main()
