@@ -133,7 +133,7 @@ class TestRestful(unittest.TestCase):
         self.assertEqual(result.headers['Content-type'], 'application/json')
         body = json.loads(result.get_data())
         self.assertEqual(body['message'], u"Cannot handle the requested type 'test/alwaysfail'")
-        self.assertEqual(len(body['accepted_mimes']), 6)
+        self.assertEqual(len(body['accepted_mimes']), 5)
 
     def test_get02(self):
         """Assert that BPG isn't supported. Not that we have anything against it,
