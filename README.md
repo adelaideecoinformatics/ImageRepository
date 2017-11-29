@@ -73,7 +73,7 @@ virtualenv .
 . bin/activate
 pip install Flask uwsgi # see https://uwsgi-docs.readthedocs.io/en/latest/Install.html if you have uWSGI issues
 cd $git_dir
-python setup.py install
+python setup.py install # installs image_repo too but we just need the dependencies
 cd $repo_dir
 image_repo -Yt > config.yml
 # You need to edit the config.yml file. At a minimum you'll want to change the following properties:
