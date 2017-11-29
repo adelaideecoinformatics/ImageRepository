@@ -71,6 +71,8 @@ setup(
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
         'Flask',
+        'Flask-Env',
+        'Flask-PyMongo',
         'Flask-RESTful',
         'marshmallow',
         'python-dateutil',
