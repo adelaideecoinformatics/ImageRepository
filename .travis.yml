@@ -3,7 +3,8 @@ python:
   - 2.7
 install:
   - sudo apt-get install libffi-dev
-  - pip install flask uwsgi setuptools
+  - pip install --upgrade setuptools # fixed "TypeError: dist must be a Distribution instance" when building python-keystoneclient
+  - pip install flask uwsgi
   - python setup.py -q install
 script:
   - nose2
