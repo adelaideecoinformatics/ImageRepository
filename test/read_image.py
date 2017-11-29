@@ -1,6 +1,11 @@
 """
 Reads an image into a base64 encoded byte string so you can easily inline
 into a test where you need to create an image in memory.
+
+To run it:
+ 1. edit the `desired_file_type` var below
+ 2. python test/read_image.py
+ 3. your base64 string will be printed to the console
 """
 import sys
 import os
