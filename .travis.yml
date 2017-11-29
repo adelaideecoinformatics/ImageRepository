@@ -3,7 +3,7 @@ python:
   - 2.7
 install:
   - sudo apt-get install libffi-dev
-  - pip install flask uwsgi
+  - pip install flask uwsgi setuptools
   - python setup.py -q install
 script:
   - nose2
