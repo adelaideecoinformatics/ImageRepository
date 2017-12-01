@@ -13,7 +13,7 @@ import os.path
 import tempfile
 import zipfile
 import logging
-from flask import Flask, abort, send_file, request
+from flask import Flask, abort, send_file, request, json
 from flask_restful import reqparse, abort, Api, Resource
 from flask_restful import fields, inputs, request
 from flask_pymongo import PyMongo
@@ -293,23 +293,35 @@ class MetadataRecord(Resource):
     def __init__(self, **kwargs):
         self.db = kwargs['paratoo_db']
         self.repo_logger = kwargs['repo_logger']
-        self.IMAGE_NAME = 'image_name'
+        self.DATA_FIELD = 'data'
 
     def get(self, image_name):
-        result = self._get_collection().find_one({self.IMAGE_NAME: image_name})
+        result = self._get_collection(self.db).find_one({'_id': image_name})
         if not result:
             raise abort(404)
-        result.pop('_id')
-        return result
+        if self.DATA_FIELD not in result:
+            self.repo_logger.error("Data problem: record _id='{}' has no '{}' field. Record content='{}'".format(
+                image_name, self.DATA_FIELD, json.dumps(result)))
+            raise abort(500)
+        return result[self.DATA_FIELD]
 
     def post(self, image_name):
-        # TODO get POST body, validate, add name and store
-        self._get_collection().insert_one({self.IMAGE_NAME: image_name})
-        return {"status": "created"}, 201 # TODO set location header to new resource
+        rawbody = request.get_data()
+        try:
+            body = json.loads(rawbody)
+            key = {'_id': image_name}
+            doc = {self.DATA_FIELD: body}
+            doc.update(key)
+            self._get_collection(self.db).replace_one(key, doc, upsert=True)
+            return {"status": "created"}, 201 # TODO set location header to new resource
+        except ValueError as e:
+            self.repo_logger.error("Data problem: failed to deserialise the body = '{}', with error={}".format(rawbody, e))
+            return abort(500)
 
-    def _get_collection(self):
+    @staticmethod
+    def _get_collection(db):
         collection_name = 'changeme' # TODO set this based on request, which user?
-        return self.db[collection_name]
+        return db[collection_name]
 
 
 class SingleImageRouter1(Image):
@@ -358,6 +370,9 @@ class ImageRepoConfig(object):
     ENV_PREFIX = 'IR_'
     MONGO_CONNECT = False
     MONGO_DBNAME = 'paratoo_image_repo'
+    MONGO_CONNECT_TIMEOUT_MS = 5000
+    MONGO_SERVER_SELECTION_TIMEOUT_MS = 5000
+    MONGO_SOCKET_TIMEOUT_MS = 5000
 
 def build_app(app_callback):
     app = Flask('image_repo')

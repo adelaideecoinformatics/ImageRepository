@@ -1,12 +1,11 @@
 """Unit tests for Restful.py"""
 import unittest
 import logging
-import json
 import mongomock
 from base64 import b64decode
-from flask import Flask
-from src.Restful import Image, build_app, build_api, SingleImageRouter
-from src.ImageType import ImageInstance, ImageHandle, ImageName
+from flask import Flask, json
+from src.Restful import build_app, build_api, SingleImageRouter, MetadataRecord
+from src.ImageType import ImageInstance, ImageHandle
 
 repo_logger = logging.getLogger("test_image_repository")
 
@@ -151,28 +150,75 @@ class TestMetadata(unittest.TestCase):
             app.config['MASTER'] = None
             app.config['PARATOO_DB'] = mongomock.MongoClient().db
         self.app = build_app(conf)
+        self.db = self.app.config['PARATOO_DB']
         build_api(self.app, 'images')
 
-    def test_get_application_json01(self):
-        """Can we call the correct handler when we request JSON?"""
+    def test_get01(self):
+        """Can we get something that we've uploaded?"""
         self.app.test_client().post(
             path='/images/some_image',
-            headers={'Accept': 'application/json'})
+            headers={'Accept': 'application/json'},
+            data=json.dumps({
+                "field1": 123,
+                "field2": "foo",
+                "field3": ["bar1", "bar2"]
+            }))
         result = self.app.test_client().get(
             path='/images/some_image',
             headers={'Accept': 'application/json'})
         self.assertEqual(result.status_code, 200)
         self.assertEqual(result.headers['Content-type'], 'application/json')
         body = json.loads(result.get_data())
-        self.assertEqual(body['image_name'], 'some_image')
+        self.assertEqual(body['field1'], 123)
+        self.assertEqual(body['field2'], 'foo')
+        self.assertEqual(body['field3'], ['bar1', 'bar2'])
 
-    def test_get_application_json02(self):
+    def test_get02(self):
         """Do we get a 404 when we request something that doesn't exist?"""
         result = self.app.test_client().get(
             path='/images/some_image',
             headers={'Accept': 'application/json'})
         self.assertEqual(result.status_code, 404)
         self.assertEqual(result.headers['Content-type'], 'application/json')
+
+    def test_get03(self):
+        """Can we verify a mongo document has the expected fields?"""
+        collection = MetadataRecord._get_collection(self.db)
+        collection.insert_one({'_id': 'explode'})
+        result = self.app.test_client().get(
+            path='/images/explode',
+            headers={'Accept': 'application/json'})
+        self.assertEqual(result.status_code, 500)
+
+    def test_post01(self):
+        """Do we get a 500 when we post invalid JSON in the body?"""
+        # FIXME stop the InternalServerError message from showing in the logs, it's expected
+        result = self.app.test_client().post(
+            path='/images/some_image',
+            headers={'Accept': 'application/json'},
+            data='{"invalidJSON":...')
+        self.assertEqual(result.status_code, 500)
+        self.assertEqual(result.headers['Content-type'], 'application/json')
+
+    def test_post02(self):
+        """Can we overwrite an existing metadata record?"""
+        firstpost = self.app.test_client().post(
+            path='/images/some_image',
+            headers={'Accept': 'application/json'},
+            data='{"version":1}')
+        self.assertEqual(firstpost.status_code, 201)
+        secondpost = self.app.test_client().post(
+            path='/images/some_image',
+            headers={'Accept': 'application/json'},
+            data='{"version":2}')
+        self.assertEqual(secondpost.status_code, 201)
+        result = self.app.test_client().get(
+            path='/images/some_image',
+            headers={'Accept': 'application/json'})
+        self.assertEqual(result.status_code, 200)
+        self.assertEqual(result.headers['Content-type'], 'application/json')
+        body = json.loads(result.get_data())
+        self.assertEqual(body['version'], 2)
 
 if __name__ == '__main__':
     unittest.main()
