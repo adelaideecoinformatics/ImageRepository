@@ -75,6 +75,7 @@ setup(
         'Flask-PyMongo',
         'Flask-RESTful',
         'marshmallow',
+        'mongomock',
         'python-dateutil',
         'python-keystoneclient',
         'python-swiftclient',

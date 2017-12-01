@@ -13,12 +13,9 @@ import os.path
 import tempfile
 import zipfile
 import logging
-from flask import Flask
+from flask import Flask, abort, send_file, request
 from flask_restful import reqparse, abort, Api, Resource
-from flask_restful import fields
-from flask_restful import inputs
-from flask_restful import request
-from flask import send_file, request
+from flask_restful import fields, inputs, request
 from flask_pymongo import PyMongo
 from flask_env import MetaFlaskEnv
 
@@ -71,35 +68,67 @@ class ImageUpload(Schema):
     """
     username = fields.Str(missing = None)
 #    name = fields.Str(required = True)   # Not using this - using path name of URL
-    
-class Image(Resource):
-    """
-    """
+
+class NoHandlerException(Exception):
+    def __init__(self, body):
+        super(NoHandlerException, self).__init__(None)
+        self.body = body
+
+class SingleImageRouter(Resource):
     def __init__(self, **kwargs):
-        self.master = kwargs.pop('master', None)
         self.repo_logger = kwargs['repo_logger']
-        self.ctms_delegate = CameraTrapMetadataStandard(**kwargs)
+        self.image_delegate = kwargs['image_delegate']
+        self.metadata_delegate = kwargs['metadata_record_delegate']
 
     def get(self, image_name):
-        best_mime = self.get_mime()
+        try:
+            return self._get_handler().get(image_name)
+        except NoHandlerException as e:
+            return e.body, 406
+
+    def post(self, image_name):
+        try:
+            return self._get_handler().post(image_name)
+        except NoHandlerException as e:
+            return e.body, 406
+
+    # TODO support DELETE, PUT
+
+    def _get_handler(self):
+        best_mime = self._get_mime()
         self.repo_logger.debug("Proceeding with Accept MIME = '{}'".format(best_mime))
         strategy_lookup = {
-            'application/json': self.ctms_delegate.get,
-            'image/jpeg': self.get_image,
-            'image/png': self.get_image,
-            'image/tiff': self.get_image,
-            'image/bmp': self.get_image
+            'application/json': self.metadata_delegate,
+            'image/jpeg': self.image_delegate,
+            'image/png': self.image_delegate,
+            'image/tiff': self.image_delegate,
+            'image/bmp': self.image_delegate
         }
         if best_mime not in strategy_lookup:
             response_body = {
                 'message': "Cannot handle the requested type '{}'".format(best_mime),
                 'accepted_mimes': accepted_mimes
             }
-            return response_body, 406
+            raise NoHandlerException(response_body)
         handler = strategy_lookup[best_mime]
-        return handler(image_name)
+        return handler
 
-    def get_image(self, image_name):
+    def _get_mime(self):
+        self.repo_logger.debug("Supplied Accept header is '{}'".format(request.headers['Accept']))
+        result = request.accept_mimetypes.best_match(accepted_mimes)
+        if result is None:
+            result = request.accept_mimetypes.best
+        self.repo_logger.debug("Best matched MIME type is '{}'".format(result))
+        return result
+
+class Image(Resource):
+    """
+    """
+    def __init__(self, **kwargs):
+        self.master = kwargs.pop('master', None)
+        self.repo_logger = kwargs['repo_logger']
+
+    def get(self, image_name):
         try:
             args, errors = ImageSchema(strict=True).load(request.args)
         except ValidationError as ex:
@@ -190,14 +219,6 @@ class Image(Resource):
         except (RepositoryError, RepositoryFailure) as ex:
             return ex.http_error()
 
-    def get_mime(self):
-        self.repo_logger.debug("Supplied Accept header is '{}'".format(request.headers['Accept']))
-        result = request.accept_mimetypes.best_match(accepted_mimes)
-        if result is None:
-            result = request.accept_mimetypes.best
-        self.repo_logger.debug("Best matched MIME type is '{}'".format(result))
-        return result
-        
     @staticmethod
     def _allowed_file(filename):
         """Sanity check that the only file types we operate upon are images or metadata from images
@@ -220,25 +241,6 @@ class Image(Resource):
         return None, 201
 
     def post(self, image_name):
-        best_mime = self.get_mime()
-        self.repo_logger.debug("Proceeding with Accept MIME = '{}'".format(best_mime))
-        strategy_lookup = {
-            'application/json': self.ctms_delegate.post,
-            'image/jpeg': self.post_image,
-            'image/png': self.post_image,
-            'image/tiff': self.post_image,
-            'image/bmp': self.post_image
-        }
-        if best_mime not in strategy_lookup:
-            response_body = {
-                'message': "Cannot handle the requested type '{}'".format(best_mime),
-                'accepted_mimes': accepted_mimes
-            }
-            return response_body, 406
-        handler = strategy_lookup[best_mime]
-        return handler(image_name)
-
-    def post_image(self, image_name):
         """POST operation
         
         :param image_name: Path of image as described in the resquest URL
@@ -287,15 +289,16 @@ class Image(Resource):
     def __getitem__(self, name):
         return getattr(self, name, None)
 
-class CameraTrapMetadataStandard(Resource):
+class MetadataRecord(Resource):
     def __init__(self, **kwargs):
-        self.mongoclient = kwargs['mongoclient']
-        self.collection_name = kwargs['collection_name']
+        self.db = kwargs['paratoo_db']
         self.repo_logger = kwargs['repo_logger']
         self.IMAGE_NAME = 'image_name'
 
     def get(self, image_name):
-        result = self._get_collection().find_one_or_404({self.IMAGE_NAME: image_name})
+        result = self._get_collection().find_one({self.IMAGE_NAME: image_name})
+        if not result:
+            raise abort(404)
         result.pop('_id')
         return result
 
@@ -305,13 +308,15 @@ class CameraTrapMetadataStandard(Resource):
         return {"status": "created"}, 201 # TODO set location header to new resource
 
     def _get_collection(self):
-        return self.mongoclient.db[self.collection_name]
+        collection_name = 'changeme' # TODO set this based on request, which user?
+        return self.db[collection_name]
 
-class Image1(Image):
+
+class SingleImageRouter1(Image):
     def get(self):
-        return super(Image1, self).get(None)
+        return super(SingleImageRouter1, self).get(None)
         
-        
+
 class ListSchema(Schema):
     regex = fields.Str(missing = None)
     
@@ -348,16 +353,30 @@ class ImageList(Resource):
         """
         return "Operation not supported. Upload files relative to images/  ", 405        
 
-def build_api(path_base, dependencies, config):
+class ImageRepoConfig(object):
+    __metaclass__ = MetaFlaskEnv
+    ENV_PREFIX = 'IR_'
+    MONGO_CONNECT = False
+    MONGO_DBNAME = 'paratoo_image_repo'
+
+def build_app(app_callback):
     app = Flask('image_repo')
-    app.config.from_object(config)
-    dependencies['mongoclient'] = PyMongo(app)
-    dependencies['collection_name'] = app.config['MONGO_COLLECTION_NAME']
-    api = Api(app)
-    api.add_resource(ImageList, '/{}/'.format(path_base), methods = ['GET'], resource_class_kwargs=dependencies)
-    api.add_resource(Image, '/{}/<path:image_name>'.format(path_base), methods = ['GET', 'POST', 'DELETE'], resource_class_kwargs=dependencies)
-    api.add_resource(Image1, '/{}/'.format(path_base), methods = ['GET'], resource_class_kwargs=dependencies)
+    app.config.from_object(ImageRepoConfig)
+    app_callback(app)
     return app
+
+def build_api(app, path_base):
+    deps = {
+        'paratoo_db': app.config['PARATOO_DB'],
+        'repo_logger': app.config['REPO_LOGGER'],
+        'master': app.config['MASTER']
+    }
+    deps['image_delegate']=Image(**deps)
+    deps['metadata_record_delegate']=MetadataRecord(**deps)
+    api = Api(app)
+    api.add_resource(ImageList, '/{}'.format(path_base), methods = ['GET'], resource_class_kwargs=deps)
+    api.add_resource(SingleImageRouter, '/{}/<path:image_name>'.format(path_base), methods = ['GET', 'POST', 'DELETE'], resource_class_kwargs=deps)
+    api.add_resource(SingleImageRouter1, '/{}/'.format(path_base), methods = ['GET'], resource_class_kwargs=deps)
         
 def startup():
     """Configure and run the repository
@@ -372,19 +391,16 @@ def startup():
     #   populate the master variable before repo.repository_start() is called
     master = repo.cache_master() # master is the interface to the caches
 
-    dependencies = {
-        'repo_logger': logging.getLogger('image_repository'),
-        'master': master
-    }
-
     path_base = repo.configuration().repository_base_pathname
-    class ImageRepoConfig(object):
-        __metaclass__ = MetaFlaskEnv
-        ENV_PREFIX = 'IR_'
-        MONGO_CONNECT = False
-        MONGO_COLLECTION_NAME = 'ctms_records'
-
-    return build_api(path_base, dependencies, ImageRepoConfig)
+    def app_callback(app):
+        app.config['REPO_LOGGER'] = logging.getLogger('image_repository')
+        app.config['MASTER'] = master
+        with app.app_context():
+            db = PyMongo(app).db
+            app.config['PARATOO_DB'] = db
+    app = build_app(app_callback)
+    build_api(app, path_base)
+    return app
 
 def createapp():
     app = startup()
