@@ -23,7 +23,7 @@ setup(
     description='Image repository providing on demand generation of thumbnails, formats, scaling, and metadata',
 
     # The project's main homepage.
-    url='https://github.com/adelaideecoinformatics/ImageRepository',
+    url='https://github.com/adelaideecoinformatics/paratoo-image-repo',
 
     # Author details
     author='Tom Saleeba',

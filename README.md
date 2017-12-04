@@ -34,7 +34,7 @@ mkdir -p my-image-repo
 cd my-image-repo
 virtualenv .
 . bin/activate
-pip install --upgrade git+git://github.com/adelaideecoinformatics/ImageRepository
+pip install --upgrade git+git://github.com/adelaideecoinformatics/paratoo-image-repo
 image_repo -Yt > config.yml
 # edit config.yml. At a minimum you'll want to change the following properties:
 #  - local_cache_configuration.cache_path
@@ -53,9 +53,9 @@ export OS_TENANT_ID="id"
 image_repo -y config.yml
 ```
 ## Note for developers
-You can install from the local filesystem if you've cloned/downloaded the repo. Assume you cloned to `/home/user/git/ImageRepository`, then you can install from there with:
+You can install from the local filesystem if you've cloned/downloaded the repo. Assume you cloned to `/home/user/git/paratoo-image-repo`, then you can install from there with:
 ```bash
-pip install --upgrade git+file:/home/user/git/ImageRepository
+pip install --upgrade git+file:/home/user/git/paratoo-image-repo
 ```
 **Beware** that this will only install from the latest commit. It won't read dirty workspace changes. You should be able to install using `pip install --editable...` to live read workspace changes but getting that working is still a TODO.
 
@@ -65,7 +65,7 @@ Doing the `pip install` method is too cumbersome when developing locally. Instea
 
 ```bash
 git clone <this repo>
-cd ImageRepository
+cd paratoo-image-repo
 export git_dir=`pwd`
 export repo_dir=~/my-image-repo
 mkdir -p $repo_dir
@@ -110,7 +110,7 @@ uwsgi\
 
 This app can be built into a docker container by doing:
 ```bash
-cd ImageRepository/
+cd paratoo-image-repo/
 docker build -t image-repo .
 ```
 The container needs your credentials to access Swift and these are configured using environment variables. You have two options for providing them: the `-e` flag to Docker or putting all the values in a *envfile* and referencing that with `--env-file`.

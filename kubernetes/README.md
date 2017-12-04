@@ -25,7 +25,7 @@ $ kubectl create secret generic \
 
 Now we can deploy the stack
 ```bash
-$ kubectl apply -f ImageRepository/kubernetes/image-repository.yml
+$ kubectl apply -f paratoo-image-repo/kubernetes/image-repository.yml
 ```
 
 Check the progress of the deploy with
@@ -71,4 +71,4 @@ image-repository-ingress   imagerepo.example.com                            80  
 ```
 You should now be able to list images on your ImageRepostory at http://imagerepo.example.com/images (no trailing slash).
 
-Congratulations on deploying your ImageRepository.
+Congratulations on deploying your paratoo-image-repo.
