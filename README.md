@@ -25,9 +25,9 @@ Images that are served are, by default, stripped of any metadata that may be pre
 
 If you want to build Docker images of the repo or run pre-built ones, you'll also need Docker.
 
-# Quickstart installing using pip
+# Quickstart: installing using pip
 
-You can install this app directly from github using pip. You should probably use a virtualenv too, like:
+If you just want to install the app to run it, not develop it, you can install it directly from github using pip. You should probably use a virtualenv too, like:
 ```bash
 cd /some/dir/
 mkdir -p my-image-repo
@@ -52,11 +52,12 @@ export OS_TENANT_ID="id"
 # now we can run it
 image_repo -y config.yml
 ```
-You can install from the filesystem if you've cloned/downloaded the repo:
+## Note for developers
+You can install from the local filesystem if you've cloned/downloaded the repo. Assume you cloned to `/home/user/git/ImageRepository`, then you can install from there with:
 ```bash
 pip install --upgrade git+file:/home/user/git/ImageRepository
 ```
-**Beware** that this will only install from the latest commit. It won't read dirty workspace changes.
+**Beware** that this will only install from the latest commit. It won't read dirty workspace changes. You should be able to install using `pip install --editable...` to live read workspace changes but getting that working is still a TODO.
 
 # Developer workflow - running the app locally using uwsgi+Flask
 

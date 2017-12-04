@@ -23,11 +23,11 @@ setup(
     description='Image repository providing on demand generation of thumbnails, formats, scaling, and metadata',
 
     # The project's main homepage.
-    url='https://github.com/https://github.com/adelaideecoinformatics/ImageRepository',
+    url='https://github.com/adelaideecoinformatics/ImageRepository',
 
     # Author details
-    author='Francis Vaughan',
-    author_email='francis.vaughan@ersa.edu.au',
+    author='Tom Saleeba',
+    author_email='tom.saleeba@adelaide.edu.au',
 
     # Choose your license
     license='MIT',
@@ -53,7 +53,7 @@ setup(
     ],
 
     # What does your project relate to?
-    keywords='ecoinformatics images photopoint',
+    keywords='informatics images photopoint',
 
     # You can just specify the packages manually here if your project is
     # simple. Or you can use find_packages().
