@@ -117,7 +117,7 @@ The container needs your credentials to access Swift and these are configured us
 
 To do the envfile method, you'll need to create the file like the following:
 ```yaml
-# imagerepo.env
+# paratoo.env
 OS_AUTH_URL=https://keystone.rc.nectar.org.au:5000/v2.0/
 OS_USERNAME=user@uni.edu.au
 OS_PASSWORD=somepass
@@ -128,7 +128,7 @@ SWIFT_C=image-repo-cache  # swift cache bucket
 ```
 Then you use this file in the run command
 ```bash
-docker run --rm -it -p 18080:80 --env-file imagerepo.env image-repo
+docker run --rm -it -p 18080:80 --env-file paratoo.env paratoo-image-repo
 ```
 Alternatively you can supply the values directly on the command line with the `-e` flag
 ```bash

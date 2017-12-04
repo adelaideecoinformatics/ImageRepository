@@ -1,0 +1,17 @@
+version: '3'
+services:
+  paratoo:
+    image: paratoo-image-repo # expects the image locally, built using ./build.sh
+    # image: 'adelaideecoinformatics/paratoo-image-repo'
+    # build: ..
+    depends_on:
+      - mongodb
+    ports:
+      - '8880:80'
+    env_file:
+      - paratoo.env
+    environment:
+      - IR_MONGO_HOST=mongodb
+  mongodb:
+    image: mongo
+    command: mongod --noauth

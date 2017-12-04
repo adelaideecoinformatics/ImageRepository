@@ -13,7 +13,7 @@ import os.path
 import tempfile
 import zipfile
 import logging
-from flask import Flask, abort, send_file, request, json
+from flask import Flask, abort, send_file, json
 from flask_restful import reqparse, abort, Api, Resource
 from flask_restful import fields, inputs, request
 from flask_pymongo import PyMongo
@@ -87,6 +87,7 @@ class SingleImageRouter(Resource):
             return e.body, 406
 
     def post(self, image_name):
+        # FIXME should probably use Content-type header for POST, not Accept
         try:
             return self._get_handler().post(image_name)
         except NoHandlerException as e:
