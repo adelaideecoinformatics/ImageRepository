@@ -4,7 +4,7 @@ import logging
 import mongomock
 from base64 import b64decode
 from flask import Flask, json
-from src.Restful import build_app, build_api, SingleImageRouter, MetadataRecord
+from src.Restful import build_app, build_api, SingleImageRouter, MetadataRecord, InvalidPostBodyError, InvalidPersistedRecordError
 from src.ImageType import ImageInstance, ImageHandle
 
 repo_logger = logging.getLogger("test_image_repository")
@@ -150,6 +150,7 @@ class TestMetadata(unittest.TestCase):
             app.config['MASTER'] = None
             app.config['PARATOO_DB'] = mongomock.MongoClient().db
         self.app = build_app(conf)
+        self.app.testing = True # ensure errors are thrown, not wrapped as 500 by Flask
         self.db = self.app.config['PARATOO_DB']
         build_api(self.app, 'images')
 
@@ -182,23 +183,29 @@ class TestMetadata(unittest.TestCase):
         self.assertEqual(result.headers['Content-type'], 'application/json')
 
     def test_get03(self):
-        """Can we verify a mongo document has the expected fields?"""
+        """Can we catch a mongo document that is missing the 'data' field?"""
         collection = MetadataRecord._get_collection(self.db)
-        collection.insert_one({'_id': 'explode'})
-        result = self.app.test_client().get(
-            path='/images/explode',
-            headers={'Accept': 'application/json'})
-        self.assertEqual(result.status_code, 500)
+        collection.insert_one({'_id': 'i_have_no_data_field'})
+        try:
+            self.app.test_client().get(
+                path='/images/i_have_no_data_field',
+                headers={'Accept': 'application/json'})
+        except InvalidPersistedRecordError:
+            # success
+            return
+        self.fail('Expected exception was NOT raised')
 
     def test_post01(self):
         """Do we get a 500 when we post invalid JSON in the body?"""
-        # FIXME stop the InternalServerError message from showing in the logs, it's expected
-        result = self.app.test_client().post(
-            path='/images/some_image',
-            headers={'Accept': 'application/json'},
-            data='{"invalidJSON":...')
-        self.assertEqual(result.status_code, 500)
-        self.assertEqual(result.headers['Content-type'], 'application/json')
+        try:
+            self.app.test_client().post(
+                path='/images/some_image',
+                headers={'Accept': 'application/json'},
+                data='{"invalidJSON":...')
+        except InvalidPostBodyError:
+            # success
+            return
+        self.fail('Expected exception was NOT raised')
 
     def test_post02(self):
         """Can we overwrite an existing metadata record?"""

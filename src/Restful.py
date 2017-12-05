@@ -301,9 +301,10 @@ class MetadataRecord(Resource):
         if not result:
             raise abort(404)
         if self.DATA_FIELD not in result:
-            self.repo_logger.error("Data problem: record _id='{}' has no '{}' field. Record content='{}'".format(
-                image_name, self.DATA_FIELD, json.dumps(result)))
-            raise abort(500)
+            raise InvalidPersistedRecordError(result, self.DATA_FIELD)
+            # self.repo_logger.error("Data problem: record _id='{}' has no '{}' field. Record content='{}'".format(
+            #     image_name, self.DATA_FIELD, json.dumps(result)))
+            # raise abort(500)
         return result[self.DATA_FIELD]
 
     def post(self, image_name):
@@ -316,13 +317,33 @@ class MetadataRecord(Resource):
             self._get_collection(self.db).replace_one(key, doc, upsert=True)
             return {"status": "created"}, 201 # TODO set location header to new resource
         except ValueError as e:
-            self.repo_logger.error("Data problem: failed to deserialise the body = '{}', with error={}".format(rawbody, e))
-            return abort(500)
+            msg = "Data problem: failed to deserialise the body = '{}', with error='{}'".format(rawbody, e)
+            raise InvalidPostBodyError(e, rawbody)
 
     @staticmethod
     def _get_collection(db):
         collection_name = 'changeme' # TODO set this based on request, which user?
         return db[collection_name]
+
+
+class InvalidPostBodyError(Exception):
+    def __init__(self, cause, body):
+        self.cause = cause
+        self.body = body
+    def __str__(self):
+        msg = "Data problem: failed to deserialise the body = '{}', with error={}".format(
+            self.body, self.cause)
+        return msg
+
+
+class InvalidPersistedRecordError(Exception):
+    def __init__(self, record, expected_field):
+        self.record = record
+        self.expected_field = expected_field
+    def __str__(self):
+        msg = "Data problem: record _id='{}' has no '{}' field. Record content='{}'".format(
+            self.record['_id'], self.expected_field, json.dumps(self.record))
+        return msg
 
 
 class SingleImageRouter1(Image):
