@@ -302,38 +302,23 @@ class MetadataRecord(Resource):
             raise abort(404)
         if self.DATA_FIELD not in result:
             raise InvalidPersistedRecordError(result, self.DATA_FIELD)
-            # self.repo_logger.error("Data problem: record _id='{}' has no '{}' field. Record content='{}'".format(
-            #     image_name, self.DATA_FIELD, json.dumps(result)))
-            # raise abort(500)
         return result[self.DATA_FIELD]
 
     def post(self, image_name):
-        rawbody = request.get_data()
-        try:
-            body = json.loads(rawbody)
-            key = {'_id': image_name}
-            doc = {self.DATA_FIELD: body}
-            doc.update(key)
-            self._get_collection(self.db).replace_one(key, doc, upsert=True)
-            return {"status": "created"}, 201 # TODO set location header to new resource
-        except ValueError as e:
-            msg = "Data problem: failed to deserialise the body = '{}', with error='{}'".format(rawbody, e)
-            raise InvalidPostBodyError(e, rawbody)
+        def handle_invalid_json(e):
+            raise abort(400)
+        request.on_json_loading_failed = handle_invalid_json
+        body = request.get_json(force=True)
+        key = {'_id': image_name}
+        doc = {self.DATA_FIELD: body}
+        doc.update(key)
+        self._get_collection(self.db).replace_one(key, doc, upsert=True)
+        return {"status": "created"}, 201 # TODO set location header to new resource
 
     @staticmethod
     def _get_collection(db):
         collection_name = 'changeme' # TODO set this based on request, which user?
         return db[collection_name]
-
-
-class InvalidPostBodyError(Exception):
-    def __init__(self, cause, body):
-        self.cause = cause
-        self.body = body
-    def __str__(self):
-        msg = "Data problem: failed to deserialise the body = '{}', with error={}".format(
-            self.body, self.cause)
-        return msg
 
 
 class InvalidPersistedRecordError(Exception):
