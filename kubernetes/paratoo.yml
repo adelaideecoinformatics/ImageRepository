@@ -1,64 +1,93 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: image-repository-server
-  namespace: imagerepo
+  name: paratoo-server
 spec:
   template:
     metadata:
       labels:
-        run: image-repository-server
+        run: paratoo-server
     spec:
       containers:
       - image: asia.gcr.io/image-repo-1234/imagerepository:test
-        name: image-repo-pod
+        name: paratoo-pod
         ports:
         - containerPort: 80
           protocol: TCP
         env:
-        - name: OS_AUTH_URL
+        - name: OS_AUTH_URL # TODO should probably make this config
           value: https://keystone.rc.nectar.org.au:5000/v2.0/
         - name: OS_USERNAME
           valueFrom:
             secretKeyRef:
-              name: image-repo-secrets
+              name: paratoo-secrets
               key: swiftusername
         - name: OS_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: image-repo-secrets
+              name: paratoo-secrets
               key: swiftpassword
         - name: OS_TENANT_NAME
           valueFrom:
             secretKeyRef:
-              name: image-repo-secrets
+              name: paratoo-secrets
               key: swifttenantname
         - name: OS_TENANT_ID
           valueFrom:
             secretKeyRef:
-              name: image-repo-secrets
+              name: paratoo-secrets
               key: swifttenantid
         - name: SWIFT_P
           valueFrom:
             secretKeyRef:
-              name: image-repo-secrets
+              name: paratoo-secrets
               key: persistentbucket
         - name: SWIFT_C
           valueFrom:
             secretKeyRef:
-              name: image-repo-secrets
+              name: paratoo-secrets
               key: cachebucket
+        - name: IR_MONGO_HOST
+          value: paratoo-mongo
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: image-repo-service
-  namespace: imagerepo
+  name: paratoo-service
 spec:
   ports:
   - port: 80
     protocol: TCP
     targetPort: 80
   selector:
-    run: image-repository-server
+    run: paratoo-server
   type: NodePort
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: mongodb
+spec:
+  template:
+    metadata:
+      labels:
+        run: paratoo-mongodb
+    spec:
+      containers:
+      - image: mongo
+        name: mongo-pod
+        command:
+          - mongod
+          - --noauth # FIXME change to using auth
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: paratoo-mongo
+spec:
+  ports:
+  - port: 27017
+    protocol: TCP
+    targetPort: 27017
+  selector:
+    run: paratoo-mongodb
